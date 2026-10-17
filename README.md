@@ -38,6 +38,7 @@
 
 ## 중간 산출물
 
+- **[최신 중간 보고서 — Figma Slides](https://www.figma.com/slides/Np9n3FqsM4UbkmR2TywNCi)**: 14장, 큰 글자와 4개 화면 배치도로 재구성.
 - [기능 명세 및 수용 기준](docs/requirements.md)
 - [화면·데이터 설계안](docs/design.md)
 - [회의록과 확정사항](docs/meetings.md)
