@@ -38,7 +38,8 @@
 
 ## 중간 산출물
 
-- **[최신 중간 보고서 — Figma Slides](https://www.figma.com/slides/Np9n3FqsM4UbkmR2TywNCi)**: 14장, 큰 글자와 4개 화면 배치도로 재구성.
+- **[최신 중간 보고서 — Figma Slides](https://www.figma.com/slides/Np9n3FqsM4UbkmR2TywNCi)**: 12장. 중간 과제의 시스템 설계 범위에 맞춰 중복 페이지를 통합하고, 스타벅스 음료 예시와 구축 환경을 반영했습니다.
+- [화면에 사용한 실제 메뉴 예시와 출처](docs/menu-example.md)
 - [기능 명세 및 수용 기준](docs/requirements.md)
 - [화면·데이터 설계안](docs/design.md)
 - [회의록과 확정사항](docs/meetings.md)
