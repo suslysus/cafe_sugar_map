@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#f7f5f0">
+  <title>트렌드·신메뉴 · Cafe Sugar Map</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/css/common.css"><link rel="stylesheet" href="assets/css/trends.css">
+  <script defer src="assets/js/mock-data.js"></script><script defer src="assets/js/api.js"></script><script defer src="assets/js/common.js"></script><script defer src="assets/js/trends.js"></script>
+</head>
+<body data-page="trends">
+  <a class="skip-link" href="#main">본문으로 이동</a><div id="app-sidebar"></div>
+  <main id="main" class="main-shell">
+    <div id="app-topbar"></div>
+    <header class="page-heading"><div><p class="eyebrow">A LITTLE SOMETHING NEW</p><h1>한 잔의 새로운 발견.</h1><p class="page-description">새로운 메뉴부터 음료 이야기까지, 한곳에서 둘러보세요.</p></div><span class="outline-note">트렌드 &amp; 시즌 메뉴</span></header>
+    <div class="demo-notice">트렌드·신메뉴 목록은 구성 예시입니다. 실제 유행·신규 출시를 의미하지 않으며 크롤링과 검색 API는 연결되지 않았습니다.</div>
+    <section class="trend-feature"><div><span class="feature-badge">TREND PREVIEW · 예시 콘텐츠</span><h2>익숙한 라떼에<br>새로운 취향 한 스푼.</h2><p>말차, 고소한 우유, 부드러운 크림.<br>궁금한 키워드로 나에게 맞는 메뉴를 찾아보세요.</p><a href="search.html?q=%EB%A7%90%EC%B0%A8" class="button light">말차 메뉴 둘러보기 ↗</a></div><div class="feature-art" aria-hidden="true"><div class="art-orbit"></div><div class="art-cup"><div class="art-foam"></div><span>csm.</span></div><span class="art-label">a fresh perspective</span></div></section>
+    <div class="section-heading"><div><p class="eyebrow">ON OUR RADAR</p><h2>지금 살펴볼 음료 이야기</h2></div><span class="muted small">검색 관심도 연동 예정</span></div>
+    <div id="trend-list" class="trend-grid"></div>
+    <div class="section-heading"><div><p class="eyebrow">NEW &amp; SEASONAL</p><h2>브랜드별 새로운 한 잔</h2></div><label class="select-label">브랜드 <select id="new-brand-filter" aria-label="신메뉴 브랜드"></select></label></div>
+    <div id="new-menu-list" class="menu-grid" aria-live="polite"></div>
+    <p class="page-footnote">실제 연동 시 공식 신메뉴 표시·출시일을 확인합니다. 최초 수집일과 출시일은 구분하며, 공식 메뉴 정보만으로 인기 순위를 만들지 않습니다.</p>
+  </main>
+</body>
+</html>

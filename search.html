@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#f7f5f0">
+  <title>메뉴 검색 · Cafe Sugar Map</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/css/common.css"><link rel="stylesheet" href="assets/css/search.css">
+  <script defer src="assets/js/mock-data.js"></script><script defer src="assets/js/api.js"></script><script defer src="assets/js/common.js"></script><script defer src="assets/js/search.js"></script>
+</head>
+<body data-page="search">
+  <a class="skip-link" href="#main">본문으로 이동</a><div id="app-sidebar"></div>
+  <main id="main" class="main-shell">
+    <div id="app-topbar"></div>
+    <header class="page-heading"><div><p class="eyebrow">FIND YOUR CUP</p><h1>오늘은 어떤 한 잔?</h1><p class="page-description">브랜드와 취향으로 찾고, 당류와 가격을 함께 살펴보세요.</p></div><span class="outline-note">최소 사이즈 · 기본 레시피</span></header>
+    <div class="demo-notice">모든 메뉴와 수치는 화면 구현용 예시입니다. 실제 판매가·영양정보가 아닙니다.</div>
+    <section class="filter-panel" aria-label="메뉴 검색 조건">
+      <form id="search-form" class="search-form"><label class="sr-only" for="menu-query">메뉴 이름</label><input id="menu-query" type="search" placeholder="어떤 음료를 찾고 있나요?" maxlength="80"><button class="button primary" type="submit">검색</button></form>
+      <div class="filter-line"><span class="filter-label">브랜드</span><div id="brand-filters" class="filter-options"></div></div>
+      <div class="filter-line"><span class="filter-label">카테고리</span><div id="category-filters" class="filter-options"></div></div>
+    </section>
+    <div class="section-heading"><div><p class="eyebrow">MENU COLLECTION</p><h2>나의 취향을 찾아서 <span id="result-count" class="count"></span></h2></div><button class="text-link" id="reset-filters" type="button">조건 초기화 ↺</button></div>
+    <div id="search-results" class="menu-grid" aria-live="polite"></div>
+    <section id="compare-tray" class="compare-tray" aria-label="선택한 메뉴" hidden><div><strong>비교할 메뉴 <span id="compare-count"></span></strong><p>선택 목록 미리보기 · 실제 비교 화면은 추후 구현</p></div><div id="compare-items" class="compare-items"></div><button class="text-link" id="clear-compare" type="button">전체 해제</button></section>
+  </main>
+</body>
+</html>
