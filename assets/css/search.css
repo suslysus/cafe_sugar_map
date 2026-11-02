@@ -1,3 +1,156 @@
 /* 2페이지 / 강다은: 필터·검색 결과·비교 선택 영역. */
-.filter-panel{padding:22px 24px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius)}.search-form{display:flex;gap:10px;margin-bottom:21px}.search-form input{flex:1;background:#f8f6f0;font-size:12px}.filter-line{display:flex;gap:16px;align-items:flex-start;margin-top:13px}.filter-label{flex-shrink:0;width:55px;font-size:11px;color:var(--muted);padding-top:7px}.filter-options{display:flex;gap:7px;flex-wrap:wrap}.filter-chip{border:1px solid var(--line);padding:6px 13px;border-radius:22px;font-size:11px;background:none;white-space:nowrap}.filter-chip:hover{background:#f2eee6}.filter-chip[aria-pressed="true"]{background:var(--accent-soft);border-color:#c9b397;color:var(--accent);font-weight:700}.compare-tray{position:sticky;bottom:16px;margin-top:28px;padding:17px 20px;background:#eee6d9f5;backdrop-filter:blur(12px);border:1px solid #d6c8b2;border-radius:14px;display:flex;align-items:center;gap:20px;box-shadow:0 8px 24px #53412912}.compare-tray strong{font-size:12px}.compare-tray p{font-size:9px;color:var(--muted);margin:3px 0 0}.compare-items{display:flex;gap:7px;flex:1;flex-wrap:wrap}.compare-item{display:flex;align-items:center;gap:6px;padding:5px 8px;font-size:10px;background:var(--surface);border-radius:5px}.compare-item button{background:none;border:0;font-size:16px;padding:0 2px;line-height:1.2}.compare-tray>.text-link{flex-shrink:0}
-@media(max-width:720px){.filter-panel{padding:17px}.filter-line{flex-direction:column;gap:8px}.filter-label{padding:0}.filter-chip{font-size:10px;padding:6px 10px}.search-form{gap:7px}.search-form input{font-size:11px;width:100%}.search-form .button{padding:10px 14px}.compare-tray{flex-wrap:wrap;gap:10px;padding:14px}.compare-items{flex-basis:100%;order:3}.compare-tray>.text-link{margin-left:auto}.compare-item{font-size:9px}}
+.filter-panel {
+  padding:22px 24px;
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:var(--radius)
+}
+
+.search-form {
+  display:flex;
+  gap:10px;
+  margin-bottom:21px
+}
+
+.search-form input {
+  flex:1;
+  background:#f8f6f0;
+  font-size:12px
+}
+
+.filter-line {
+  display:flex;
+  gap:16px;
+  align-items:flex-start;
+  margin-top:13px
+}
+
+.filter-label {
+  flex-shrink:0;
+  width:55px;
+  font-size:11px;
+  color:var(--muted);
+  padding-top:7px
+}
+
+.filter-options {
+  display:flex;
+  gap:7px;
+  flex-wrap:wrap
+}
+
+.filter-chip {
+  border:1px solid var(--line);
+  padding:6px 13px;
+  border-radius:22px;
+  font-size:11px;
+  background:none;
+  white-space:nowrap
+}
+
+.filter-chip:hover {
+  background:#f2eee6
+}
+
+.filter-chip[aria-pressed="true"] {
+  background:var(--accent-soft);
+  border-color:#c9b397;
+  color:var(--accent);
+  font-weight:700
+}
+
+.compare-tray {
+  position:sticky;
+  bottom:16px;
+  margin-top:28px;
+  padding:17px 20px;
+  background:#eee6d9f5;
+  backdrop-filter:blur(12px);
+  border:1px solid #d6c8b2;
+  border-radius:14px;
+  display:flex;
+  align-items:center;
+  gap:20px;
+  box-shadow:0 8px 24px #53412912
+}
+
+.compare-tray strong {
+  font-size:12px
+}
+
+.compare-tray p {
+  font-size:9px;
+  color:var(--muted);
+  margin:3px 0 0
+}
+
+.compare-items {
+  display:flex;
+  gap:7px;
+  flex:1;
+  flex-wrap:wrap
+}
+
+.compare-item {
+  display:flex;
+  align-items:center;
+  gap:6px;
+  padding:5px 8px;
+  font-size:10px;
+  background:var(--surface);
+  border-radius:5px
+}
+
+.compare-item button {
+  background:none;
+  border:0;
+  font-size:16px;
+  padding:0 2px;
+  line-height:1.2
+}
+
+.compare-tray>.text-link {
+  flex-shrink:0
+}
+
+@media(max-width:720px) {
+  .filter-panel {
+    padding:17px
+  }
+  .filter-line {
+    flex-direction:column;
+    gap:8px
+  }
+  .filter-label {
+    padding:0
+  }
+  .filter-chip {
+    font-size:10px;
+    padding:6px 10px
+  }
+  .search-form {
+    gap:7px
+  }
+  .search-form input {
+    font-size:11px;
+    width:100%
+  }
+  .search-form .button {
+    padding:10px 14px
+  }
+  .compare-tray {
+    flex-wrap:wrap;
+    gap:10px;
+    padding:14px
+  }
+  .compare-items {
+    flex-basis:100%;
+    order:3
+  }
+  .compare-tray>.text-link {
+    margin-left:auto
+  }
+  .compare-item {
+    font-size:9px
+  }
+}
