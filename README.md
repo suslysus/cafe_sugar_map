@@ -2,22 +2,22 @@
 
 주변 카페의 메뉴를 찾고 가격·당류·칼로리를 확인하는 웹프로그래밍 13조 프로젝트입니다.
 
-**2026-11-02 협업용 기초본 · HTML / CSS / JavaScript · 백엔드 연결 없음**
+**2026-11-03 · HTML / CSS / JavaScript · 로그인·마이페이지: Supabase Auth + Postgres**
 
 > [!WARNING]
 > **이번 기초본 업로드까지만 main에 직접 반영합니다. 이후 팀원 전원은 개인 작업 브랜치에서 수정 → push → Pull Request(PR) → 카카오톡 작업 보고·검토 요청 → 다른 팀원 확인 후 main에 merge하는 순서를 지켜 주세요.**
 >
 > main에서 직접 개발하거나 `git push --force`하지 마세요. `git pull`은 다른 사람의 변경을 내 컴퓨터에 받는 명령이고, PR은 내 변경을 main에 합쳐 달라는 요청입니다. 두 작업은 다릅니다.
 
-## 1. 먼저 알아둘 내용
+## 1. 현재 구현과 연결 범위
 
-- 실제 지도·현재 위치·크롤링·검색 트렌드·서버 인증·DB는 연결하지 않은 프런트엔드 기초본입니다.
-- **매장 위치와 메뉴·가격·영양값·NEW 표시는 모두 가상 예시입니다. 실제 판매 정보나 실제 유행으로 사용하지 마세요.** 브랜드 이름만 프로젝트 대상 4곳을 사용합니다.
-- 3페이지는 **트렌드·신메뉴**입니다. 랜덤 추천은 제외했습니다.
-- 로그인은 표시 이름만 받는 데모입니다. 비밀번호 입력은 비활성화했으며 실제 계정을 만들거나 인증하지 않습니다.
-- 즐겨찾기와 비교 선택은 `localStorage`, 데모 로그인은 현재 탭의 `sessionStorage`를 사용합니다. **실제 사용자 정보·비밀번호·API 키를 여기에 저장하지 마세요.**
-- 데모 이름은 모두 같은 `demo-user` 프로필입니다. 이름을 바꿔도 다른 계정으로 분리되지 않습니다. 로그아웃 후에도 이 브라우저의 즐겨찾기는 유지됩니다.
-- 비교는 **선택·해제와 목록 표시까지만** 구현했습니다. 별도 비교 화면·장바구니·길 안내는 기본 범위에 포함하지 않았습니다.
+- 1·2·3페이지의 지도·메뉴·트렌드 데이터는 기존 가상 예시입니다. 별도 전달된 JSON/CSV 5개는 사용하지 않습니다.
+- 4페이지는 이메일·비밀번호 로그인/회원가입, 인증 메일 재요청, 비밀번호 재설정, 로그아웃, 표시 이름 수정, 계정별 즐겨찾기를 Supabase로 연결합니다.
+- 메뉴 목록·매장 위치·가격·영양값·NEW 표시는 실제 정보가 아닙니다. 랜덤 추천은 제외했습니다.
+- 계정은 Supabase Auth, 프로필과 즐겨찾기는 Supabase Postgres에 저장합니다. 초기 설정은 [Supabase 안내](docs/supabase-setup.md)를 따릅니다. 설정·테이블이 준비되지 않으면 실제 저장은 사용할 수 없습니다.
+- URL·publishable key는 `assets/js/config.js`에 둡니다. 브라우저 공개 키이므로 코드에 포함할 수 있지만 **secret/service_role·DB 비밀번호는 넣지 않습니다.** RLS가 사용자별 접근을 제한합니다.
+- Supabase SDK가 브라우저 저장소의 인증 세션을 관리합니다. 비밀번호를 직접 저장하지 않으며 예전 데모 계정·즐겨찾기는 실제 계정으로 옮기지 않습니다.
+- 비교 선택 목록만 기존 브라우저 로컬 저장을 유지합니다. 별도 비교 화면·길 안내는 추가 범위입니다.
 
 ## 2. 실행 방법
 
@@ -38,7 +38,7 @@ HTML을 직접 열어도 기본 화면은 표시되지만 `file://`에서는 저
 | 지도·메뉴 | 강민재 | `index.html` | `assets/css/map.css`, `assets/js/map.js` | 예시 지도 핀 선택, 브랜드별 메뉴, 공통 상세창 |
 | 메뉴 검색 | 강다은 | `search.html` | `assets/css/search.css`, `assets/js/search.js` | 이름 검색, 브랜드·카테고리 필터, 즐겨찾기, 비교 선택 목록 |
 | 트렌드·신메뉴 | 현준혁 | `trends.html` | `assets/css/trends.css`, `assets/js/trends.js` | 예시 키워드→검색 연결, 신메뉴 브랜드 필터, 공통 상세창 |
-| 로그인·마이페이지 | 한정원 | `mypage.html` | `assets/css/mypage.css`, `assets/js/mypage.js` | 데모 로그인·로그아웃, 즐겨찾기 목록, 위치 권한 상태 확인 |
+| 로그인·마이페이지 | 한정원 | `mypage.html` | `assets/css/mypage.css`, `assets/js/mypage.js` | 이메일 로그인·회원가입·재설정, 프로필 편집, 계정별 즐겨찾기, 위치 권한 상태 |
 
 왼쪽 사이드바로 네 페이지를 이동합니다. 모바일에서는 상단 메뉴 버튼으로 사이드바를 엽니다.
 
@@ -53,18 +53,24 @@ assets/
     mypage.css            한정원
   js/
     mock-data.js         공통 예시 데이터·브랜드·카테고리 ID
-    api.js               공통 데이터 접근 함수, 현재는 mock 모드
+    api.js               메뉴는 예시, 인증·즐겨찾기는 Supabase 연결
     common.js            사이드바·헤더·카드·상세창·알림
+    config.js            공개 Supabase 연결 설정
+    supabase-auth.js     실제 인증·프로필·즐겨찾기 어댑터
     map.js / search.js / trends.js / mypage.js
   (각 페이지는 자신의 CSS·JS를 사용)
 docs/
-  api.md                 향후 API 명세표·요청/응답·화면 함수 연결
-  database.md            DB와 로컬 파일 비교·테이블 설계안
-  schema/accounts.sql    계정·세션·즐겨찾기 SQLite 설계 예시
-  schema/catalog.sql     메뉴 DB를 도입할 때의 추가 설계 예시
+  api.md                 현재 SDK 호출·화면 연결 계약
+  database.md            Supabase 테이블·RLS 설계
+  supabase-setup.md      실제 Supabase 초기화·인증 설정
+  schema/accounts.sql    이전 SQLite 참고 예시 (Supabase 실행 금지)
+  schema/catalog.sql     이전 SQLite 참고 예시 (Supabase 실행 금지)
+supabase/
+  migrations/            현재 Postgres 초기 스키마
+  tests/rls.sql           가상 사용자 롤백 방식의 DB 권한 검사
 ```
 
-**각자 개인 파일부터 수정해 주세요.** 공통 파일은 한정원을 기본 조율 창구로 하되, 변경 전 팀과 협의합니다. 수집 담당의 추가 분담과 백엔드 기술은 아직 확정하지 않았습니다.
+**각자 개인 파일부터 수정해 주세요.** 공통 파일은 한정원을 기본 조율 창구로 하되, 변경 전 팀과 협의합니다. 수집 담당의 추가 분담과 메뉴 저장 방식은 아직 확정하지 않았습니다. 계정·즐겨찾기는 Supabase로 결정했습니다.
 
 ## 4. 팀원 필독: 작업·동기화·merge 순서
 
@@ -158,51 +164,39 @@ PR: [실제 PR 링크]
 ## 5. 서로의 페이지를 깨뜨리지 않으려면
 
 - **파일명·경로를 임의로 바꾸지 마세요.** 변경 시 사이드바 링크, HTML의 CSS/JS 경로, 로그인 복귀 경로까지 함께 수정합니다.
-- HTML의 `body data-page`, `app-sidebar`, `app-topbar`와 스크립트 순서를 유지하세요: `mock-data.js → api.js → common.js → 개인 JS`.
+- HTML의 `body data-page`, `app-sidebar`, `app-topbar`와 스크립트 순서를 유지하세요: `mock-data.js → config.js → Supabase SDK → supabase-auth.js → api.js → common.js → 개인 JS`.
 - 개인 JS는 `CafeAPI`로 데이터를 받습니다. 페이지마다 메뉴 배열이나 서버 URL을 중복 관리하지 않습니다. `CafeMock` 직접 참조는 공통 구현 내부에만 둡니다.
 - **메뉴·브랜드·카테고리 ID는 공통 계약입니다.** 변경 시 검색 URL·즐겨찾기·비교 선택·API·DB도 맞춥니다. 메뉴 이름으로 식별하지 마세요.
 - 기초본의 `categoryTags`는 복수 태그입니다. 최종 분류는 팀에서 정합니다. 디카페인과 무카페인은 구분하세요.
 - 영양정보는 **제공 사이즈·HOT/ICE·기본 레시피**와 함께 관리합니다. 미확인은 `null`로 두고 ‘확인 중’으로 표시합니다. 0과 미확인은 다릅니다.
 - 외부·사용자 문자열을 `innerHTML`에 그대로 넣지 마세요. 현재 템플릿에서는 `CafeUI.escape()`를 사용합니다. 외부 URL도 허용 프로토콜을 검증합니다.
-- `.env`, 비밀번호, 세션 토큰, API 키, DB 파일, 개인 정보는 커밋하지 않습니다. 데모와 실데이터는 구분합니다.
-- `localStorage`는 인증 수단이 아닙니다. 데모 로그인 검사를 실제 서버의 권한 검사로 사용하지 마세요.
+- `.env`, 비밀번호, 사용자 세션 토큰, 비밀 API 키, DB 비밀번호·파일, 개인 정보는 커밋하지 않습니다. Supabase publishable key만 공개 설정에 사용합니다. 데모와 실데이터를 구분합니다.
+- 사용자 권한은 Supabase Auth의 JWT와 DB의 RLS로 검사합니다. 브라우저 저장소 값이나 표시 이름으로 접근 권한을 판단하지 마세요.
 - 크롤러는 별도 작업으로 두고 방문자 페이지 로딩 때마다 사이트를 긁지 않습니다. 사이트별 접근·이용 조건을 확인하고 과도한 요청을 피합니다.
 - 수집 실패를 메뉴 판매 종료로 처리하지 않습니다. 원본 상품 ID·출처·확인 시각을 보존하고 최초 발견일을 출시일로 쓰지 않습니다.
 
-## 6. API 명세표
+## 6. 실제 연결과 API 계약
 
-**아래 URL은 향후 연결할 설계안이며 현재 동작하는 서버 주소가 아닙니다.** 자세한 요청·응답과 `CafeAPI` 대응은 [API 문서](docs/api.md)에 있습니다.
+페이지는 `CafeAPI`를 사용합니다. 로그인·프로필·즐겨찾기는 `supabase-auth.js`가 공식 SDK를 통해 Supabase에 요청합니다. 기존 `/api/v1/...`는 별도 서버를 도입할 때의 제안이며 현재 제공하지 않습니다.
 
-| 기능 | 메서드 | 제안 경로 | 로그인 | 화면 |
-| --- | --- | --- | --- | --- |
-| 브랜드·카테고리 | GET | `/api/v1/catalog/meta` | 불필요 | 공통 |
-| 주변 매장 | GET | `/api/v1/stores?lat=...&lng=...&radiusM=500` | 불필요 | 1 |
-| 메뉴 검색 | GET | `/api/v1/menus?brandId=...&category=...&q=...` | 불필요 | 1·2 |
-| 메뉴 상세 | GET | `/api/v1/menus/{menuId}` | 불필요 | 공통 |
-| 트렌드 | GET | `/api/v1/trends` | 불필요 | 3 |
-| 신메뉴 | GET | `/api/v1/menus?isNew=true&brandId=...` | 불필요 | 3 |
-| 로그인 | POST | `/api/v1/auth/login` | 불필요 | 4 |
-| 현재 사용자 | GET | `/api/v1/me` | 필요 | 공통 |
-| 로그아웃 | POST | `/api/v1/auth/logout` | 필요 | 4 |
-| 즐겨찾기 목록 | GET | `/api/v1/me/favorites` | 필요 | 4 |
-| 즐겨찾기 저장 | PUT | `/api/v1/me/favorites/{menuId}` | 필요 | 1·2·3 |
-| 즐겨찾기 삭제 | DELETE | `/api/v1/me/favorites/{menuId}` | 필요 | 공통 |
+| 기능 | 화면에서 호출 | 실제 저장·인증 |
+| --- | --- | --- |
+| 로그인 / 가입 | `login({ email, password })` / `signUp({ email, password, displayName })` | Supabase Auth |
+| 세션 / 로그아웃 | `getSession()` / `logout()` | Supabase Auth SDK |
+| 표시 이름 수정 | `updateProfile(displayName)` | `public.profiles` |
+| 즐겨찾기 조회·추가·삭제 | `getFavorites()` / `toggleFavorite(menuId)` | `public.favorites` + RLS |
+| 인증 메일 / 비밀번호 재설정 | `resendConfirmation(email)` / `sendPasswordReset(email)` / `updatePassword(password)` | Supabase Auth |
+| 메뉴·지도·트렌드 | 기존 `getMenus/getMenu/getStores/getTrends` | 기존 공통 예시 데이터 |
 
-위치 권한 조회는 브라우저 API입니다. 비교 선택은 현재 로컬 기능이며 비교 서버 API는 정하지 않았습니다. 회원가입·소셜 로그인 여부도 미정입니다.
+자세한 계약은 [API 문서](docs/api.md), 연결 설정은 [Supabase 안내](docs/supabase-setup.md)를 참고합니다. `isFavorite()`는 동기 캐시 조회 계약을 유지하고 Auth 준비·변경 이벤트로 화면을 갱신합니다. 이를 임의로 Promise로 바꾸지 마세요.
 
-## 7. DB 두 개와 메뉴 로컬 저장 비교
+## 7. DB 구성
 
-**DB를 계정용/메뉴용으로 두 개 나누기보다, 하나의 DB 안에서 테이블을 분리하는 방식을 제안합니다.** 메뉴 저장 위치는 아직 확정하지 않았습니다.
+사용자·비밀번호·인증 세션은 Supabase Auth가 관리합니다. 직접 비밀번호 테이블이나 자체 세션 테이블을 만들지 않습니다. 앱의 `profiles`와 `favorites`는 **같은 Supabase Postgres**에 두고, 각 사용자가 자기 행만 조회·수정하도록 RLS를 적용합니다.
 
-| 선택 | 계정·즐겨찾기 | 메뉴 | 판단 |
-| --- | --- | --- | --- |
-| 현재 기초본 | 데모 브라우저 저장 | `mock-data.js` | 서버·DB 없이 네 페이지 개발 가능 |
-| A. 서버 인증 + 메뉴 파일 | 서버 DB | 서버가 읽는 공통 JSON | 메뉴가 적고 갱신이 드물 때 단순함. 방문자가 개발자 PC 파일을 직접 읽는 구조는 아님 |
-| B. 서버 인증 + 메뉴 DB | 서버 DB | 같은 DB의 메뉴 테이블 | 자동 수집·수정·필터 확장이 필요할 때 유리 |
+메뉴는 당분간 기존 공통 예시 파일을 유지합니다. 나중에 메뉴 테이블을 추가하더라도 메뉴 ID와 화면 API 계약을 보존합니다. 이전 JSON/CSV 5개는 이번 작업에서 사용하지 않습니다.
 
-**A로 시작해도 화면은 같은 API를 사용하고 서버 내부 저장소만 B로 바꿀 수 있게 설계합니다.** 서버 인증을 도입하면 즐겨찾기도 서버에서 사용자별로 관리합니다. 메뉴 ID가 바뀌면 기존 즐겨찾기도 검토합니다.
-
-[DB 설계안](docs/database.md), [계정 SQL](docs/schema/accounts.sql), [메뉴 SQL](docs/schema/catalog.sql)을 참고하세요. **SQL은 미실행 설계 예시이며 DBMS·인증 기술을 확정한 것이 아닙니다.**
+[DB 설계](docs/database.md)와 `supabase/migrations/202611030001_profiles_favorites.sql`이 현재 기준입니다. **`docs/schema/accounts.sql`·`catalog.sql`은 과거 SQLite 참고 자료이며 Supabase에 실행하지 않습니다.**
 
 ## 8. PR 전 확인할 동작
 
@@ -210,8 +204,8 @@ PR: [실제 PR 링크]
 - 지도 핀 선택→오른쪽 카페·메뉴 변경, 상세창 열기·닫기.
 - 검색·필터·결과 없음·초기화, 비교 선택·해제와 페이지 이동 후 목록 유지.
 - 신메뉴 필터와 트렌드→검색 이동. 랜덤 추천 제외 여부.
-- 비로그인 즐겨찾기→로그인→원래 페이지 복귀, 저장→마이페이지 조회·삭제.
-- 새로고침·로그아웃, 긴 이름·특수문자, 영양정보 `null` 처리.
+- 비로그인 즐겨찾기→로그인→원래 페이지 복귀, 계정별 저장→마이페이지 조회·삭제·새로고침 유지.
+- 회원가입·이메일 인증, 잘못된 로그인, 이름 수정, 비밀번호 재설정, 계정 전환·로그아웃, 긴 이름·특수문자, 영양정보 `null` 처리.
 - 모바일 가로 넘침, 사이드바 열기·닫기, 키보드 접근.
 
 ## 기존 기획·중간 보고 자료

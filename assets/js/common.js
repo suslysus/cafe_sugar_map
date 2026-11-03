@@ -41,7 +41,12 @@
     catch (_) { return null; }
   }
   function closeSidebar() { document.querySelector(".sidebar").classList.remove("open"); document.querySelector(".mobile-overlay").classList.remove("visible"); document.getElementById("mobile-menu-toggle").setAttribute("aria-expanded", "false"); }
-  async function refreshAccount() { const user = await api.getSession(); document.getElementById("account-name").textContent = user ? user.displayName + "님" : "데모 로그인"; }
+  async function refreshAccount() {
+    try {
+      const user = await api.getSession();
+      document.getElementById("account-name").textContent = user ? user.displayName + "님" : "로그인";
+    } catch (_) { document.getElementById("account-name").textContent = "로그인"; }
+  }
   function syncFavorites() {
     document.querySelectorAll("[data-favorite]").forEach(button => { const saved = api.isFavorite(button.dataset.favorite); button.classList.toggle("saved", saved); button.setAttribute("aria-pressed", String(saved)); });
   }
@@ -55,7 +60,7 @@
   function init() {
     const active = document.body.dataset.page;
     document.getElementById("app-sidebar").innerHTML = '<aside class="sidebar" id="site-sidebar" aria-label="사이트 메뉴"><a class="brand" href="index.html"><svg class="brand-mark" viewBox="0 0 40 45" fill="none" aria-hidden="true"><path d="M7 16h24l-3 24H10L7 16Z" stroke="currentColor" stroke-width="2"/><path d="M4 13h30M12 7c0-5 7-5 7-5s1 9-7 9M23 11s0-8 8-7c0 0 1 7-8 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M13 25h13" stroke="currentColor" stroke-width="2"/></svg><span class="brand-name">Cafe<br>Sugar Map<span class="sr-only"> 홈</span></span></a><p class="brand-caption">A BETTER CUP, EVERY DAY.</p><p class="nav-caption">EXPLORE</p><nav class="sidebar-nav">' + Object.keys(paths).map((key, index) => '<a class="nav-link' + (active === key ? " active" : "") + '" href="' + paths[key] + '"' + (active === key ? ' aria-current="page"' : "") + '>' + icon(key) + '<span>' + labels[key] + '</span><span class="nav-number">0' + (index + 1) + '</span></a>').join("") + '</nav><div class="sidebar-bottom"><div class="sidebar-note"><strong>Know your cup.</strong><p>작은 정보가 만드는<br>나에게 맞는 커피 습관.</p></div><div class="sidebar-footer">WEB PROGRAMMING · TEAM 13</div></div></aside><div class="mobile-overlay" aria-hidden="true"></div>';
-    document.getElementById("app-topbar").innerHTML = '<div class="topbar"><div class="topbar-left"><button class="icon-button mobile-menu" id="mobile-menu-toggle" type="button" aria-label="사이트 메뉴 열기" aria-expanded="false" aria-controls="site-sidebar">☰</button><span class="topbar-title">Cafe Sugar Map <span aria-hidden="true">/</span> ' + labels[active] + '</span></div><div class="topbar-actions"><span class="demo-label">FRONTEND DEMO</span><a class="account-link" href="mypage.html">' + icon("mypage") + '<span id="account-name">데모 로그인</span></a></div></div>';
+    document.getElementById("app-topbar").innerHTML = '<div class="topbar"><div class="topbar-left"><button class="icon-button mobile-menu" id="mobile-menu-toggle" type="button" aria-label="사이트 메뉴 열기" aria-expanded="false" aria-controls="site-sidebar">☰</button><span class="topbar-title">Cafe Sugar Map <span aria-hidden="true">/</span> ' + labels[active] + '</span></div><div class="topbar-actions"><span class="demo-label">MENU DEMO</span><a class="account-link" href="mypage.html">' + icon("mypage") + '<span id="account-name">로그인</span></a></div></div>';
     const extra = document.createElement("div"); extra.innerHTML = '<div id="app-toast" class="toast" role="status" aria-live="polite" hidden></div><dialog class="detail-dialog" id="menu-detail" aria-labelledby="detail-title"><div class="dialog-header"><p class="eyebrow">A CLOSER LOOK</p><button id="close-detail" class="icon-button" type="button" aria-label="메뉴 상세 닫기">×</button></div><div class="dialog-body" id="detail-content"></div></dialog>'; document.body.append(extra);
     document.getElementById("mobile-menu-toggle").addEventListener("click", () => { const open = !document.querySelector(".sidebar").classList.contains("open"); document.querySelector(".sidebar").classList.toggle("open", open); document.querySelector(".mobile-overlay").classList.toggle("visible", open); document.getElementById("mobile-menu-toggle").setAttribute("aria-expanded", String(open)); });
     document.querySelector(".mobile-overlay").addEventListener("click", closeSidebar);
@@ -72,6 +77,7 @@
       const compare = event.target.closest("[data-compare]"); if (compare) api.toggleCompare(compare.dataset.compare);
     });
     window.addEventListener("cafe:favorites-changed", syncFavorites);
+    window.addEventListener("cafe:auth-ready", () => { refreshAccount(); syncFavorites(); });
     window.addEventListener("cafe:session-changed", () => { refreshAccount(); syncFavorites(); });
     window.addEventListener("cafe:storage-unavailable", () => toast("브라우저 저장소를 사용할 수 없어 새로고침하면 변경 내용이 사라질 수 있어요."));
     window.addEventListener("storage", event => { if (event.key === null || event.key === "csm.demo.favorites.v1") window.dispatchEvent(new CustomEvent("cafe:favorites-changed")); if (event.key === null || event.key === "csm.demo.compare.v1") window.dispatchEvent(new CustomEvent("cafe:compare-changed")); });

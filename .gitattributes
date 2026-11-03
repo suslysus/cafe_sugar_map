@@ -6,3 +6,5 @@
 *.sql text eol=lf
 *.hwp binary
 *.pptx binary
+# Preserve upstream SDK template-string whitespace; keep it out of authored-code diffs.
+assets/vendor/*.js -whitespace linguist-vendored

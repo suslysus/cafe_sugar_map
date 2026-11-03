@@ -1,8 +1,9 @@
-/* 공통 데이터 접근 경계. 실제 서버 연결 시 이 파일을 교체하고 화면의 함수 계약은 유지한다. */
+/* 공통 계약: 메뉴·지도는 기존 예시, 인증·즐겨찾기는 Supabase. */
 (function () {
   "use strict";
   const data = window.CafeMock;
-  const keys = { session: "csm.demo.session.v1", favorites: "csm.demo.favorites.v1", compare: "csm.demo.compare.v1" };
+  const auth = window.CafeAuth;
+  const keys = { compare: "csm.demo.compare.v1" };
   const memory = {};
   let storageWarning = false;
   function read(key, fallback, session) {
@@ -15,11 +16,11 @@
     catch (_) { if (!storageWarning) { storageWarning = true; window.dispatchEvent(new CustomEvent("cafe:storage-unavailable")); } }
   }
   function validIds(value) { return Array.isArray(value) ? Array.from(new Set(value.filter(id => data.menus.some(m => m.id === id)))) : []; }
-  function favorites() { return validIds(read(keys.favorites, [])); }
-  function session() { const user = read(keys.session, null, true); return user && user.id === "demo-user" && typeof user.displayName === "string" ? user : null; }
   function notify(event) { window.dispatchEvent(new CustomEvent(event)); }
   window.CafeAPI = {
-    mode: "mock",
+    mode: "supabase-auth/mock-catalog",
+    authReady: auth.ready,
+    getAuthStatus: () => auth.status(),
     getBrands: async () => data.brands,
     getCategories: async () => data.categories,
     getStores: async () => data.stores,
@@ -29,21 +30,23 @@
     },
     getMenu: async id => data.menus.find(m => m.id === id) || null,
     getTrends: async () => data.trends,
-    getSession: async () => session(),
-    login: async function ({ displayName }) {
-      const name = String(displayName || "").trim();
-      if (!name || name.length > 24) throw new Error("표시 이름을 1~24자로 입력해 주세요.");
-      const user = { id: "demo-user", displayName: name, isDemo: true };
-      write(keys.session, user, true); notify("cafe:session-changed"); return user;
+    getSession: () => auth.getSession(),
+    login: credentials => auth.signIn(credentials),
+    signUp: credentials => auth.signUp(credentials),
+    logout: () => auth.signOut(),
+    updateProfile: name => auth.updateProfile(name),
+    resendConfirmation: email => auth.resendConfirmation(email),
+    sendPasswordReset: email => auth.sendPasswordReset(email),
+    updatePassword: password => auth.updatePassword(password),
+    getFavorites: async function () {
+      if (!await auth.getSession()) return [];
+      const ids = await auth.getFavoriteIds();
+      return ids.map(id => data.menus.find(menu => menu.id === id)).filter(Boolean);
     },
-    logout: async function () { write(keys.session, null, true); notify("cafe:session-changed"); },
-    getFavorites: async () => session() ? data.menus.filter(m => favorites().includes(m.id)) : [],
-    isFavorite: id => Boolean(session() && favorites().includes(id)),
+    isFavorite: id => auth.isFavorite(id),
     toggleFavorite: async function (id) {
-      if (!session()) { const error = new Error("즐겨찾기는 데모 로그인 후 사용할 수 있어요."); error.code = "AUTH_REQUIRED"; throw error; }
       if (!data.menus.some(m => m.id === id)) throw new Error("메뉴를 찾을 수 없습니다.");
-      const ids = favorites(); const next = ids.includes(id) ? ids.filter(item => item !== id) : ids.concat(id);
-      write(keys.favorites, next); notify("cafe:favorites-changed"); return next.includes(id);
+      return auth.toggleFavorite(id);
     },
     getCompare: () => validIds(read(keys.compare, [])),
     toggleCompare: function (id) {
