@@ -1,4 +1,106 @@
-/* 4페이지 / 한정원: 로그인 데모·즐겨찾기·권한 상태. */
+/* 4페이지 / 한정원: Supabase 로그인·프로필·즐겨찾기·권한 상태. */
+.auth-status {
+  margin-bottom: 22px;
+  padding: 13px 16px;
+  border: 1px solid #ded2bc;
+  border-radius: 10px;
+  background: #f1ebdf;
+  color: #755d3f;
+  font-size: 12px;
+}
+.auth-panel { min-width: 0; }
+.auth-tabs {
+  display: flex;
+  gap: 22px;
+  margin: 25px 36px 0;
+  border-bottom: 1px solid var(--line);
+}
+.auth-tabs button {
+  padding: 12px 0;
+  background: none;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  color: var(--muted);
+  font-size: 13px;
+}
+.auth-tabs button[aria-selected="true"] {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  font-weight: 700;
+}
+.form-group, .password-field { width: 100%; }
+.form-group label { display: block; }
+.password-field { position: relative; }
+.password-field input { padding-right: 64px; }
+.password-toggle {
+  position: absolute;
+  right: 11px;
+  top: 10px;
+  padding: 2px 6px;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font-size: 11px;
+}
+.auth-secondary-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  margin-top: 16px;
+}
+.auth-secondary-actions .text-link { font-size: 10px; }
+.login-form .button:disabled { opacity: .55; }
+.form-feedback {
+  font-size: 11px;
+  line-height: 1.9;
+  color: var(--green);
+  overflow-wrap: anywhere;
+  width: 100%;
+}
+.form-feedback.is-error { color: #a04037; }
+.profile-settings {
+  display: grid;
+  grid-template-columns: 1fr minmax(150px, 250px) auto;
+  align-items: center;
+  gap: 16px;
+  padding: 23px 26px;
+  margin-top: 18px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.profile-settings label { font-size: 13px; font-weight: 650; }
+.profile-settings p { margin: 3px 0 0; }
+.profile-settings .form-feedback { grid-column: 1 / -1; }
+.profile-banner #profile-email { overflow-wrap: anywhere; }
+.profile-banner > div:nth-child(2) { min-width: 0; flex: 1; }
+.favorite-error {
+  background: #f5ebe5;
+  border: 1px solid #e4cec1;
+  border-radius: 14px;
+  padding: 22px;
+}
+.favorite-error p { font-size: 12px; }
+.recovery-panel {
+  max-width: 540px;
+  padding: 30px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.stacked-form { display: grid; gap: 10px; }
+.stacked-form label { font-size: 12px; font-weight: 650; }
+.stacked-form input { margin-bottom: 10px; }
+@media (max-width: 720px) {
+  .auth-tabs { margin: 12px 25px 0; }
+  .profile-settings { grid-template-columns: 1fr; gap: 10px; padding: 20px; }
+  .profile-settings input { width: 100%; }
+  .profile-settings .button { justify-self: start; }
+  .recovery-panel { padding: 23px; }
+}
+
 .login-layout {
   display:grid;
   grid-template-columns:1fr 1fr;

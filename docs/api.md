@@ -1,90 +1,50 @@
-# API 계약 초안
+# 현재 API 계약
 
-2026-11-02 · **서버 미구현**. URL은 제안이며 실제 요청을 보내지 않는다. 현재 화면은 `assets/js/api.js`의 비동기 mock 함수를 사용한다. 백엔드 프레임워크·인증 방식은 미정이다.
+2026-11-03. 메뉴·지도·트렌드는 기존 예시 데이터이며, 인증·프로필·즐겨찾기는 Supabase SDK로 연결한다. 각 페이지는 CafeAPI 공개 함수를 호출한다. 별도 /api/v1 서버는 현재 없다.
 
-## 공통 규칙
+## 인증·프로필·저장
 
-- 기본 경로 제안: `/api/v1`. 같은 origin 배포를 우선 검토한다.
-- JSON 필드 이름은 camelCase, ID는 안정적인 문자열이다. 화면 문구와 ID를 분리한다.
-- 성공 응답 예: `{ "data": ... }`. 실패 예: `{ "error": { "code": "MENU_NOT_FOUND", "message": "메뉴를 찾을 수 없습니다." } }`.
-- 화면용 `CafeAPI`는 서버 응답의 `data`를 꺼내 반환한다. 목록은 배열, 없는 단일 메뉴는 `null`로 정규화한다. 현재 mock은 외피 없이 이 형태로 바로 반환한다.
-- `400` 입력 오류, `401` 인증 필요, `403` 접근 불가, `404` 자원 없음, `429` 요청 초과, `500` 내부 오류를 구분한다. 서버 오류와 정상 빈 배열을 구분한다.
-- 클라이언트가 `userId`를 보내 계정을 선택하지 않는다. 사용자 식별은 서버에서 검증한 세션으로 한다.
-- 실제 인증은 서버 세션 + HttpOnly 쿠키를 후보로 검토한다. 도입 시 Secure/SameSite/CSRF·만료 처리를 함께 설계한다. 현재 `sessionStorage` 데모를 이 구현으로 간주하지 않는다.
-- 날짜는 실제 확인·집계 시각이 있을 때만 ISO 8601로 제공한다. 아래 메뉴·숫자는 모두 가상 예시다.
+| CafeAPI 함수 | 입력·반환 | 실제 연결 |
+| --- | --- | --- |
+| authReady | 초기화 Promise. 설정 실패도 상태로 보존 | CafeAuth.ready |
+| getAuthStatus() | initialized/configured/error/code/dataError/recovery | 연결·복구 UI 상태 |
+| getSession() | Promise<User 또는 null> | Supabase Auth 세션 + profiles 표시 이름 |
+| login({ email, password }) | Promise<User> | auth.signInWithPassword |
+| signUp({ email, password, displayName }) | Promise<{ signedIn }> | auth.signUp, display_name 메타데이터 |
+| logout() | Promise<void> | auth.signOut(scope: local) |
+| updateProfile(displayName) | Promise<User> | profiles 본인 행 UPDATE |
+| getFavorites() | Promise<메뉴 DTO 배열> | favorites 조회 후 현재 공통 메뉴 ID 연결 |
+| toggleFavorite(menuId) | Promise<저장 여부 boolean> | 본인 favorites INSERT/DELETE |
+| isFavorite(menuId) | 동기 boolean 캐시 조회 | 로그인·저장 변경 이벤트로 갱신 |
+| resendConfirmation(email) | Promise<void> | auth.resend(type: signup) |
+| sendPasswordReset(email) | Promise<void> | auth.resetPasswordForEmail |
+| updatePassword(password) | Promise<void> | 복구 이벤트로 인증된 상태에서 auth.updateUser |
 
-## 공통 메뉴 DTO
+User 형태는 { id, email, displayName, isDemo: false }다. 식별자는 Supabase 사용자 UUID이며 표시 이름으로 계정을 나누지 않는다. 회원가입의 signedIn:false는 이메일 인증 안내를 표시한다. 비밀번호는 함수 호출에만 사용하고 앱 코드가 직접 저장하지 않는다.
 
-현재는 **메뉴별 최소 제공 사이즈의 대표 정보**를 평탄화해 전달한다. 여러 사이즈·온도를 수집할 때 DB는 별도 보존하고 API의 대표 사이즈·온도 선택 규칙을 먼저 정한다. 서로 다른 온도의 영양정보를 합치지 않는다.
+Supabase SDK가 JWT 전달과 세션 갱신을 처리한다. 공개 publishable 키와 사용자의 JWT는 서로 다르며, DB는 RLS에서 auth.uid()를 검사한다. 브라우저용 키를 관리자 키로 교체하면 안 된다.
 
-```json
-{
-  "id": "demo-s-matcha",
-  "brandId": "starbucks",
-  "name": "예시 말차 크림 라떼",
-  "categoryTags": ["caffeine", "latte"],
-  "sizeLabel": "최소 사이즈(예시)",
-  "volumeMl": 350,
-  "temperature": "ICE",
-  "priceKrw": 6000,
-  "sugarG": 25,
-  "caloriesKcal": 240,
-  "tone": "matcha",
-  "isNew": true,
-  "seasonal": true,
-  "sourceUrl": null,
-  "checkedAt": null,
-  "isDemo": true
-}
-```
+## 이벤트·비동기 규칙
 
-가격은 원, 당류는 g, 칼로리는 kcal. 미확인은 `null`이며 0으로 채우지 않는다. `tone`은 컵 일러스트 색상용으로 실제 메뉴 분류가 아니다. 실제 데이터 전환 시 `isDemo: false`, 검증된 출처·확인일을 제공하고 화면의 데모 안내도 검토한다.
+- cafe:auth-ready: 초기 연결 상태 확인 완료.
+- cafe:session-changed: 로그인·로그아웃·프로필·복구 상태 변화.
+- cafe:favorites-changed: 로그인 계정·저장 목록 변화.
+- Auth 이벤트 콜백 안에서 SDK 요청을 await하지 않고 다음 작업으로 예약한다.
+- isFavorite()는 카드 표시를 위한 동기 캐시 계약을 유지한다. 초기화·계정 변경 때 다시 표시하며, 늦게 끝난 이전 계정의 요청은 현재 캐시에 반영하지 않는다.
+- 로그인 후 returnTo는 동일 디렉터리의 index.html/search.html/trends.html만 허용한다. 이메일 확인은 mypage.html로 돌아온다.
 
-## 요청·응답과 화면 함수
+## 오류
 
-| 목적 | 요청 | 주요 입력 | `data` 응답 | 현재 CafeAPI |
-| --- | --- | --- | --- | --- |
-| 필터 메타데이터 | GET `/catalog/meta` | 없음 | `{ brands: [{ id, name }], categories: [{ id, name }] }` | `getBrands()`, `getCategories()`로 분리 반환 |
-| 매장 | GET `/stores` | `lat`, `lng`, `radiusM`(m), 선택 `brandId` | `[{ id, brandId, name, latitude, longitude }]` | `getStores()` |
-| 메뉴 검색 | GET `/menus` | 선택 `brandId`, `category`, `q`, `isNew` | 메뉴 DTO 배열 | `getMenus({ brandId, category, q, isNew })` |
-| 메뉴 상세 | GET `/menus/{menuId}` | 메뉴 ID | 메뉴 DTO | `getMenu(menuId)` |
-| 트렌드 | GET `/trends` | 집계·정렬 미정 | 트렌드 DTO 배열 | `getTrends()` |
-| 로그인 | POST `/auth/login` | 최종 인증 방식에 따라 결정 | `{ id, displayName }` + 서버 세션 | mock 전용 `login({ displayName })` |
-| 현재 사용자 | GET `/me` | 서버 세션 | `{ id, displayName }` | `getSession()`; 서버 401은 `null`로 변환 |
-| 로그아웃 | POST `/auth/logout` | 서버 세션 | `{ loggedOut: true }` | `logout()` |
-| 즐겨찾기 조회 | GET `/me/favorites` | 서버 세션 | 메뉴 DTO 배열 | `getFavorites()` |
-| 즐겨찾기 저장 | PUT `/me/favorites/{menuId}` | 서버 세션, 메뉴 ID | `{ menuId, saved: true }` | `toggleFavorite(menuId)`가 상태에 따라 PUT/DELETE 선택 |
-| 즐겨찾기 삭제 | DELETE `/me/favorites/{menuId}` | 서버 세션, 메뉴 ID | `{ menuId, saved: false }` | 위와 같음 |
+AUTH_REQUIRED는 로그인 안내로 이동한다. CONFIG_REQUIRED/CONFIG_INVALID/SDK_UNAVAILABLE은 로그인을 막고 설정 안내를 표시한다. 잘못된 비밀번호, 이메일 미인증, 요청 제한은 각각 안내한다. DB 연결 실패는 빈 즐겨찾기와 구분하고 재시도를 제공한다. 원문 서버 오류·토큰·비밀번호를 화면이나 로그에 출력하지 않는다.
 
-실제 로그인에 표시 이름만 보내면 안 된다. 이메일/비밀번호 또는 소셜 로그인 중 선택 후 요청 형식을 정한다. 회원가입 API는 그 결정 이후 추가한다. 실제 비밀번호는 브라우저 저장소에 보관하지 않는다.
+## 기존 메뉴·로컬 기능 계약
 
-`isFavorite()`와 `getCompare()/toggleCompare()/clearCompare()`는 현재 동기식 UI 보조 함수다. 서버 도입 후 즐겨찾기는 조회 결과 캐시를 기준으로 표시하고 저장 요청 완료 후 갱신한다. 이들을 단순히 Promise로 바꾸면 카드 UI가 깨지므로 공개 계약 변경을 팀과 협의한다. 비교 목록은 당분간 로컬 선택 상태로 유지할 수 있다.
+getBrands(), getCategories(), getStores(), getMenus({ brandId, category, q, isNew }), getMenu(menuId), getTrends()는 예시 데이터에 대한 Promise를 반환한다. getCompare()/toggleCompare()/clearCompare()는 기존 로컬 비교 선택을 유지한다.
 
-현재 `getStores()`의 `x/y`는 가상 지도 배치 좌표(%)다. 실제 위·경도로 재사용하지 않는다. 실제 지도 연결 시 지도 SDK에 위·경도를 전달한다.
+메뉴 DTO는 { id, brandId, name, categoryTags, sizeLabel, volumeMl, temperature, priceKrw, sugarG, caloriesKcal, tone, isNew, seasonal, sourceUrl, checkedAt, isDemo }다. 단위는 원/g/kcal이고 미확인은 null이다. 현재 모든 메뉴는 isDemo:true다. 공유받은 JSON/CSV 5개는 사용하지 않는다.
 
-## 트렌드 DTO 제안
+실제 메뉴 수집·저장소로 바꾸더라도 메뉴 ID와 DTO를 유지한다. 저장소에 남았지만 현재 카탈로그에서 찾을 수 없는 메뉴는 getFavorites() 결과에서 제외된다. 실제 메뉴를 도입할 때 해당 항목의 표시·삭제·ID 이관 규칙을 추가해야 한다.
 
-```json
-{
-  "id": "demo-trend-matcha",
-  "title": "쌉싸름한 말차의 매력",
-  "keyword": "말차",
-  "description": "예시 콘텐츠",
-  "label": "키워드 예시",
-  "tone": "matcha",
-  "sourceUrl": null,
-  "period": null
-}
-```
+## 후속 서버 설계
 
-실제 트렌드에는 근거 종류·집계 기간·산정 기준을 추가한다. 공식 신메뉴와 검색 관심도 상승은 다른 정보다. 초기에는 검수한 콘텐츠 목록을 사용할 수도 있으며 유행 측정 방식은 미정이다. 랜덤 추천 API는 만들지 않는다.
-
-## 데이터 저장 위치와의 관계
-
-메뉴가 JSON 파일이든 DB든 API 응답은 동일하게 유지한다. 크롤러는 검증된 공통 데이터를 생성하고 서버가 제공한다. 크롤러 실행 API를 일반 사용자에게 열지 않는다. 출처·제공량·HOT/ICE·가격 기준을 보존하고 수집 오류로 정상 메뉴를 일괄 덮어쓰지 않는다.
-
-```javascript
-const menus = await CafeAPI.getMenus({ brandId: "starbucks", category: "latte" });
-const menu = await CafeAPI.getMenu("demo-s-matcha");
-// 현재는 mock 데이터. 서버 연결 시 api.js 내부를 우선 교체한다.
-```
+이전 문서의 /api/v1/catalog/meta, /stores, /menus, /trends 등은 별도 서버를 도입할 때 검토할 제안이다. 인증과 즐겨찾기에 같은 기능의 자체 비밀번호·세션 서버를 중복 구축하지 않는다. SQL과 설정은 [DB 문서](database.md), [Supabase 연결 안내](supabase-setup.md)를 참고한다.
