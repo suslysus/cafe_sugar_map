@@ -13,7 +13,7 @@
 | Folder | / (root) |
 | HTTPS | 기본 도메인에서 강제 적용 |
 | 첫 배포 | main의 8f4b042, 기존 데모 화면 |
-| Supabase 기능 | PR #2 검토·merge 및 이후 배포 완료 필요 |
+| Supabase 기능 | PR #2 merge 후 로그인 코드 배포 확인 (2026-11-03) |
 
 빌드 명령이나 별도 Node 서버는 필요 없다. 네 HTML 파일이 저장소 루트에 있으며 CSS·JS·페이지 링크는 프로젝트 경로 아래에서 동작하는 상대 경로를 유지한다. `/assets/...`처럼 도메인 루트 기준으로 바꾸면 `/cafe_sugar_map/` 배포에서 깨질 수 있다.
 
@@ -25,7 +25,7 @@ merge 이후 [Actions](https://github.com/suslysus/cafe_sugar_map/actions)의 `p
 
 ## Supabase 인증
 
-Supabase Authentication → URL Configuration의 Site URL은 `https://suslysus.github.io/cafe_sugar_map/mypage.html`로 설정했다. 로그인 구현은 [PR #2](https://github.com/suslysus/cafe_sugar_map/pull/2)에서 별도 검토한다. PR #2의 초기 설정 기록에 localhost Site URL이 적혀 있으면 아래 배포 설정을 최신 값으로 따른다. 공유 프로젝트의 Site URL을 각자 localhost로 바꾸지 않는다.
+Supabase Authentication → URL Configuration의 Site URL은 `https://suslysus.github.io/cafe_sugar_map/mypage.html`로 설정했다. 초기 로그인 구현은 [PR #2](https://github.com/suslysus/cafe_sugar_map/pull/2)로 main에 반영했다. PR #2의 초기 설정 기록에 localhost Site URL이 적혀 있으면 아래 배포 설정을 최신 값으로 따른다. 공유 프로젝트의 Site URL을 각자 localhost로 바꾸지 않는다.
 
 허용 Redirect URLs는 다음 세 개다.
 

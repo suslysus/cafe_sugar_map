@@ -10,7 +10,9 @@
 | getAuthStatus() | initialized/configured/error/code/dataError/recovery | 연결·복구 UI 상태 |
 | getSession() | Promise<User 또는 null> | Supabase Auth 세션 + profiles 표시 이름 |
 | login({ email, password }) | Promise<User> | auth.signInWithPassword |
-| signUp({ email, password, displayName }) | Promise<{ signedIn }> | auth.signUp, display_name 메타데이터 |
+| requestSignupVerification(email) | Promise<void> | 임시 비밀번호로 auth.signUp, 가입 대기 메타데이터, 인증 링크 발송 |
+| completeSignup({ displayName, password }) | Promise<User> | auth.getUser로 인증·가입 대기 확인 → profiles 이름 수정 → auth.updateUser |
+| signUp({ email, password, displayName }) | Promise<{ signedIn }> | 이전 호출 호환용. 현재 회원가입 화면에서는 사용하지 않음 |
 | logout() | Promise<void> | auth.signOut(scope: local) |
 | updateProfile(displayName) | Promise<User> | profiles 본인 행 UPDATE |
 | getFavorites() | Promise<메뉴 DTO 배열> | favorites 조회 후 현재 공통 메뉴 ID 연결 |
@@ -20,7 +22,11 @@
 | sendPasswordReset(email) | Promise<void> | auth.resetPasswordForEmail |
 | updatePassword(password) | Promise<void> | 복구 이벤트로 인증된 상태에서 auth.updateUser |
 
-User 형태는 { id, email, displayName, isDemo: false }다. 식별자는 Supabase 사용자 UUID이며 표시 이름으로 계정을 나누지 않는다. 회원가입의 signedIn:false는 이메일 인증 안내를 표시한다. 비밀번호는 함수 호출에만 사용하고 앱 코드가 직접 저장하지 않는다.
+User 형태는 { id, email, displayName, signupPending, emailVerified, isDemo: false }다. 식별자는 Supabase 사용자 UUID이며 표시 이름으로 계정을 나누지 않는다. 비밀번호는 함수 호출에만 사용하고 앱 코드가 직접 저장하지 않는다.
+
+회원가입 화면은 이메일만 먼저 입력받는다. 인증 메일 받기는 임의의 임시 비밀번호를 Web Crypto로 생성하고 `csm_signup_pending: true` 메타데이터와 함께 Auth에 요청한다. 임시 비밀번호는 화면·저장소·로그에 남기지 않는다. 최초 요청 때 Auth 사용자와 기본 프로필 행이 생성되지만, 입력칸은 실제 인증 세션을 얻기 전까지 잠근다. 기존 Confirm signup 메일 템플릿과 PKCE 링크를 그대로 사용하며 인증번호용 템플릿 변경은 필요 없다.
+
+메일 링크로 받은 세션의 이메일 인증과 가입 대기 상태가 확인되면 이름·비밀번호 칸이 열린다. `completeSignup`은 UI 잠금과 별개로 서버 `getUser()` 결과의 소유자·`email_confirmed_at`·가입 대기 메타데이터를 검사한다. 일반 기존 계정의 비밀번호를 이 경로로 변경하지 않는다. 프로필을 먼저 저장하고 비밀번호·가입 대기 해제를 마지막에 처리하므로 실패하면 입력값을 유지하며 재시도할 수 있다. 성공한 뒤에만 비밀번호 입력을 비운다. 재접속 시 서버 메타데이터로 가입 마무리를 이어간다. 메타데이터는 진행 상태이며 DB 권한은 기존 RLS가 담당한다.
 
 Supabase SDK가 JWT 전달과 세션 갱신을 처리한다. 공개 publishable 키와 사용자의 JWT는 서로 다르며, DB는 RLS에서 auth.uid()를 검사한다. 브라우저용 키를 관리자 키로 교체하면 안 된다.
 

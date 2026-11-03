@@ -9,6 +9,28 @@
   font-size: 12px;
 }
 .auth-panel { min-width: 0; }
+.email-verification-row {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  align-items: flex-start;
+}
+.email-verification-row input { flex: 1; min-width: 0; }
+.email-verification-row .button { flex-shrink: 0; padding: 12px 10px; font-size: 10px; }
+.email-verification-status {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  width: 100%;
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-size: 10px;
+}
+.email-verification-status .text-link { font-size: 10px; }
+.email-verification-status .is-verified { color: var(--green); }
+.login-form input:disabled { background: #f1efea; opacity: .65; cursor: not-allowed; }
+.login-form input[readonly] { background: #f1f4ec; }
 .auth-tabs {
   display: flex;
   gap: 22px;
@@ -94,6 +116,9 @@
 .stacked-form label { font-size: 12px; font-weight: 650; }
 .stacked-form input { margin-bottom: 10px; }
 @media (max-width: 720px) {
+  .email-verification-row { flex-wrap: wrap; }
+  .email-verification-row input { flex-basis: 100%; margin-bottom: 0; }
+  .email-verification-row .button { margin-bottom: 12px; }
   .auth-tabs { margin: 12px 25px 0; }
   .profile-settings { grid-template-columns: 1fr; gap: 10px; padding: 20px; }
   .profile-settings input { width: 100%; }
