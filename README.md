@@ -12,7 +12,7 @@
 ## 1. 현재 구현과 연결 범위
 
 - 1·2·3페이지의 지도·메뉴·트렌드 데이터는 기존 가상 예시입니다. 별도 전달된 JSON/CSV 5개는 사용하지 않습니다.
-- 4페이지는 이메일·비밀번호 로그인/회원가입, 인증 메일 재요청, 비밀번호 재설정, 로그아웃, 표시 이름 수정, 계정별 즐겨찾기를 Supabase로 연결합니다.
+- 4페이지는 이메일·비밀번호 로그인, 이메일 인증 후 이름·비밀번호를 입력하는 회원가입, 인증 메일 재요청, 비밀번호 재설정, 로그아웃, 표시 이름 수정, 계정별 즐겨찾기를 Supabase로 연결합니다.
 - 메뉴 목록·매장 위치·가격·영양값·NEW 표시는 실제 정보가 아닙니다. 랜덤 추천은 제외했습니다.
 - 계정은 Supabase Auth, 프로필과 즐겨찾기는 Supabase Postgres에 저장합니다. 초기 설정은 [Supabase 안내](docs/supabase-setup.md)를 따릅니다. 설정·테이블이 준비되지 않으면 실제 저장은 사용할 수 없습니다.
 - URL·publishable key는 `assets/js/config.js`에 둡니다. 브라우저 공개 키이므로 코드에 포함할 수 있지만 **secret/service_role·DB 비밀번호는 넣지 않습니다.** RLS가 사용자별 접근을 제한합니다.
@@ -23,7 +23,7 @@
 
 공유·발표용 주소는 **[Cafe Sugar Map](https://suslysus.github.io/cafe_sugar_map/)**입니다. GitHub Pages는 `main`의 루트 폴더를 배포하며, 팀원 검토 후 PR을 merge하면 잠시 뒤 사이트도 갱신됩니다. 개인 브랜치에 push하는 것만으로 배포 화면이 바뀌지는 않습니다. 설정과 장애 확인은 [배포 안내](docs/deployment.md)를 참고하세요.
 
-2026-11-03 첫 배포는 기존 데모가 있는 `main` 기준입니다. Supabase 연결은 [PR #2](https://github.com/suslysus/cafe_sugar_map/pull/2)가 검토 후 merge되어야 배포 사이트에서도 사용할 수 있습니다. 정기 크롤링용 Actions는 아직 구성하지 않았습니다.
+2026-11-03 첫 배포는 기존 데모였으며, 이후 [PR #2](https://github.com/suslysus/cafe_sugar_map/pull/2)가 merge되어 Supabase 로그인 코드도 배포됐습니다. 정기 크롤링용 Actions는 아직 구성하지 않았습니다.
 
 설치나 빌드 없이 저장소 폴더에서 정적 서버를 실행합니다.
 
@@ -185,7 +185,8 @@ PR: [실제 PR 링크]
 
 | 기능 | 화면에서 호출 | 실제 저장·인증 |
 | --- | --- | --- |
-| 로그인 / 가입 | `login({ email, password })` / `signUp({ email, password, displayName })` | Supabase Auth |
+| 로그인 | `login({ email, password })` | Supabase Auth |
+| 가입 메일 인증 / 가입 완료 | `requestSignupVerification(email)` / `completeSignup({ displayName, password })` | Supabase Auth + profiles |
 | 세션 / 로그아웃 | `getSession()` / `logout()` | Supabase Auth SDK |
 | 표시 이름 수정 | `updateProfile(displayName)` | `public.profiles` |
 | 즐겨찾기 조회·추가·삭제 | `getFavorites()` / `toggleFavorite(menuId)` | `public.favorites` + RLS |

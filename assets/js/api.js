@@ -33,6 +33,8 @@
     getSession: () => auth.getSession(),
     login: credentials => auth.signIn(credentials),
     signUp: credentials => auth.signUp(credentials),
+    requestSignupVerification: email => auth.requestSignupVerification(email),
+    completeSignup: details => auth.completeSignup(details),
     logout: () => auth.signOut(),
     updateProfile: name => auth.updateProfile(name),
     resendConfirmation: email => auth.resendConfirmation(email),

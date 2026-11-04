@@ -28,6 +28,7 @@
     if (code === "email_not_confirmed") return fail("이메일 인증 후 로그인해 주세요. 인증 메일을 다시 받을 수도 있어요.", code);
     if (code === "over_email_send_rate_limit" || code === "over_request_rate_limit" || (error && error.status === 429)) return fail("요청이 많아요. 잠시 후 다시 시도해 주세요.", code);
     if (code === "weak_password") return fail("비밀번호가 서비스의 보안 기준에 맞지 않아요. 더 긴 비밀번호를 사용해 주세요.", code);
+    if (code === "user_already_exists") return fail("이미 가입된 이메일이에요. 로그인하거나 비밀번호 재설정을 이용해 주세요.", code);
     if (["PGRST205", "42P01", "42501"].includes(code)) return fail("저장소 연결을 확인해야 합니다. 잠시 후 다시 시도해 주세요.", "DATABASE_SETUP_REQUIRED");
     return fail("요청을 완료하지 못했어요. 연결 상태를 확인하고 다시 시도해 주세요.", code || "REQUEST_FAILED");
   }
@@ -73,6 +74,8 @@
       id: rawUser.id,
       email: rawUser.email || "",
       displayName: profile && profile.display_name || rawUser.user_metadata && rawUser.user_metadata.display_name || "카페 친구",
+      signupPending: Boolean(rawUser.user_metadata && rawUser.user_metadata.csm_signup_pending === true),
+      emailVerified: Boolean(rawUser.email_confirmed_at),
       isDemo: false
     };
   }
@@ -174,6 +177,42 @@
       const signedIn = Boolean(result.data.session);
       if (signedIn) await acceptSession(result.data.session);
       return { signedIn };
+    },
+    requestSignupVerification: async function (email) {
+      const sdk = await requireClient(false);
+      if (rawUser) throw fail("현재 계정에서 로그아웃한 뒤 가입해 주세요.", "ALREADY_SIGNED_IN");
+      // 이메일 인증용 임시 비밀번호는 메모리에서만 만들고 저장·표시하지 않는다.
+      const bytes = crypto.getRandomValues(new Uint8Array(24));
+      const temporaryPassword = "Aa1!" + Array.from(bytes, value => value.toString(16).padStart(2, "0")).join("");
+      const result = await sdk.auth.signUp({ email: email.trim(), password: temporaryPassword,
+        options: { data: { csm_signup_pending: true }, emailRedirectTo: redirectUrl() } });
+      if (result.error) throw friendly(result.error);
+      if (result.data.session) await acceptSession(result.data.session);
+    },
+    completeSignup: async function ({ displayName, password }) {
+      const sdk = await requireClient(true);
+      const owner = rawUser.id;
+      // 입력칸 잠금과 별개로 서버가 확인한 사용자·이메일 인증 상태를 검사한다.
+      const verified = await sdk.auth.getUser();
+      if (verified.error) throw friendly(verified.error);
+      const account = verified.data.user;
+      if (!rawUser || rawUser.id !== owner || !account || account.id !== owner) throw fail("로그인 상태가 변경됐어요. 다시 시도해 주세요.", "SESSION_CHANGED");
+      if (!account.email_confirmed_at || !account.user_metadata || account.user_metadata.csm_signup_pending !== true) throw fail("가입용 이메일 인증을 먼저 완료해 주세요. 기존 계정은 로그인해 주세요.", "SIGNUP_VERIFICATION_REQUIRED");
+      const name = displayName.trim();
+      if (!name || name.length > 24) throw fail("표시 이름은 1~24자로 입력해 주세요.", "INVALID_NAME");
+      if (typeof password !== "string" || password.length < 8 || password.length > 72) throw fail("비밀번호는 8~72자로 입력해 주세요.", "INVALID_PASSWORD");
+      const revision = epoch;
+      const saved = await sdk.from("profiles").update({ display_name: name }).eq("id", owner).select("id, display_name").single();
+      checkOwner(owner, revision);
+      if (saved.error) throw friendly(saved.error);
+      const result = await sdk.auth.updateUser({ password, data: { display_name: name, csm_signup_pending: false } });
+      if (result.error) throw friendly(result.error);
+      if (!rawUser || rawUser.id !== owner || !result.data.user || result.data.user.id !== owner) throw fail("로그인 상태가 변경됐어요. 다시 시도해 주세요.", "SESSION_CHANGED");
+      rawUser = result.data.user;
+      profile = saved.data;
+      profileError = null;
+      emit("cafe:session-changed");
+      return user();
     },
     signOut: async function () {
       const sdk = await requireClient(false);

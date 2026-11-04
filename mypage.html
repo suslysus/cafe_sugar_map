@@ -46,12 +46,20 @@
         <form id="login-form" class="login-form" role="tabpanel" aria-labelledby="tab-login">
           <h2 id="auth-title">다시 만나 반가워요.</h2>
           <p id="auth-description" class="muted">이메일로 로그인하고 저장한 음료를 확인하세요.</p>
+          <label for="auth-email">이메일</label>
+          <div class="email-verification-row">
+            <input id="auth-email" name="email" type="email" autocomplete="username" maxlength="254" placeholder="you@example.com" required>
+            <button id="verify-email" class="button secondary" type="button" hidden disabled>인증 메일 받기</button>
+          </div>
+          <div id="signup-email-status" class="email-verification-status" hidden>
+            <span id="email-verification-state" role="status" aria-live="polite">이메일 인증 전</span>
+            <button id="change-signup-email" class="text-link" type="button" hidden>이메일 변경</button>
+          </div>
+          <p id="signup-verification-help" class="field-help" hidden>인증 메일의 링크를 같은 브라우저에서 열어 주세요.<br>인증이 완료되면 아래 항목을 입력할 수 있어요.</p>
           <div id="signup-name-group" class="form-group" hidden>
             <label for="display-name">표시 이름</label>
             <input id="display-name" name="displayName" maxlength="24" autocomplete="nickname" placeholder="사용할 이름을 입력해 주세요">
           </div>
-          <label for="auth-email">이메일</label>
-          <input id="auth-email" name="email" type="email" autocomplete="username" maxlength="254" placeholder="you@example.com" required>
           <label for="auth-password">비밀번호</label>
           <div class="password-field">
             <input id="auth-password" name="password" type="password" autocomplete="current-password" maxlength="72" required>
@@ -60,7 +68,7 @@
           <div id="signup-confirm-group" class="form-group" hidden>
             <label for="confirm-password">비밀번호 확인</label>
             <input id="confirm-password" type="password" autocomplete="new-password" maxlength="72">
-            <p class="field-help">비밀번호는 8자 이상으로 입력해 주세요.<br>가입 후 이메일 인증이 필요할 수 있어요.</p>
+            <p class="field-help">비밀번호는 8~72자로 입력해 주세요.</p>
           </div>
           <p id="form-feedback" class="form-feedback" role="status" aria-live="polite" hidden></p>
           <button id="auth-submit" class="button primary" type="submit" disabled>로그인</button>
