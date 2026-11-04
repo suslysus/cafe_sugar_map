@@ -19,13 +19,15 @@
 - Supabase SDK가 브라우저 저장소의 인증 세션을 관리합니다. 비밀번호를 직접 저장하지 않으며 예전 데모 계정·즐겨찾기는 실제 계정으로 옮기지 않습니다.
 - 비교 선택 목록만 기존 브라우저 로컬 저장을 유지합니다. 별도 비교 화면·길 안내는 추가 범위입니다.
 
-## 2. 실행 방법
+## 2. 사이트 주소·배포·실행 방법
 
-공유·발표용 주소는 **[Cafe Sugar Map](https://suslysus.github.io/cafe_sugar_map/)**입니다. GitHub Pages는 `main`의 루트 폴더를 배포하며, 팀원 검토 후 PR을 merge하면 잠시 뒤 사이트도 갱신됩니다. 개인 브랜치에 push하는 것만으로 배포 화면이 바뀌지는 않습니다. 설정과 장애 확인은 [배포 안내](docs/deployment.md)를 참고하세요.
+사이트 주소는 **[https://suslysus.github.io/cafe_sugar_map/](https://suslysus.github.io/cafe_sugar_map/)**이며, 로그인·회원가입은 [마이페이지](https://suslysus.github.io/cafe_sugar_map/mypage.html)에서 이용합니다. 배포된 사이트는 개인 PC에서 서버를 켜지 않아도 접속할 수 있습니다.
 
-2026-11-03 첫 배포는 기존 데모였으며, 이후 [PR #2](https://github.com/suslysus/cafe_sugar_map/pull/2)가 merge되어 Supabase 로그인 코드도 배포됐습니다. 정기 크롤링용 Actions는 아직 구성하지 않았습니다.
+배포는 **GitHub Pages**를 사용합니다. [저장소 Settings → Pages](https://github.com/suslysus/cafe_sugar_map/settings/pages)의 Source는 `Deploy from a branch`, Branch는 `main`, 폴더는 `/ (root)`로 설정했습니다. 별도 설치·빌드 명령은 없습니다.
 
-설치나 빌드 없이 저장소 폴더에서 정적 서버를 실행합니다.
+개인 브랜치 수정 → PR → 팀원 검토·승인 → main에 merge → [Actions](https://github.com/suslysus/cafe_sugar_map/actions)의 `pages build and deployment` 성공 순서로 배포합니다. Approve나 개인 브랜치 push만으로는 사이트에 반영되지 않습니다. 상세 설정과 장애 확인은 [배포 안내](docs/deployment.md)를 참고하세요. 정기 크롤링용 Actions는 아직 구성하지 않았습니다.
+
+로컬에서 개발할 때는 저장소 폴더에서 정적 서버를 실행합니다.
 
 ```bash
 python -m http.server 8000
@@ -33,7 +35,7 @@ python -m http.server 8000
 
 브라우저에서 **http://localhost:8000**을 엽니다. Windows에서 `python`이 없다면 `py -m http.server 8000`을 사용하거나 VS Code Live Server로 `index.html`을 여세요. 종료는 터미널에서 `Ctrl+C`입니다.
 
-HTML을 직접 열어도 기본 화면은 표시되지만 `file://`에서는 저장소·권한·URL 동작이 브라우저마다 다를 수 있습니다. **팀 검증은 같은 localhost 주소에서 진행하세요.** 포트가 바뀌면 브라우저 저장 데이터도 별개입니다.
+HTML을 직접 여는 `file://` 대신 정적 서버를 사용합니다. 로컬 인증 복귀 주소는 `localhost:8000/mypage.html`과 `127.0.0.1:8000/mypage.html`을 허용해 두었습니다. 다른 포트는 Supabase 허용 목록에도 추가해야 합니다. 실제 이메일 인증은 이용 중인 주소에서 메일을 요청하고 같은 브라우저에서 확인하세요.
 
 ## 3. 페이지와 담당 파일
 
@@ -197,7 +199,15 @@ PR: [실제 PR 링크]
 
 ## 7. DB 구성
 
-사용자·비밀번호·인증 세션은 Supabase Auth가 관리합니다. 직접 비밀번호 테이블이나 자체 세션 테이블을 만들지 않습니다. 앱의 `profiles`와 `favorites`는 **같은 Supabase Postgres**에 두고, 각 사용자가 자기 행만 조회·수정하도록 RLS를 적용합니다.
+**Supabase 프로젝트 하나에서 Auth와 Postgres를 함께 사용**합니다. 사용자·비밀번호·인증 세션은 Supabase Auth가 관리하며, 앱이 별도 비밀번호·세션 테이블을 만들지 않습니다.
+
+| 저장 위치 | 저장하는 내용 |
+| --- | --- |
+| `auth.users` (Supabase 관리) | 계정 ID·이메일·인증 정보 |
+| `public.profiles` | 계정 ID, 표시 이름, 생성 시각 |
+| `public.favorites` | 계정 ID, 메뉴 ID, 저장 시각. 계정·메뉴 조합의 중복 저장 방지 |
+
+가입 시 트리거가 프로필을 생성합니다. `profiles`와 `favorites`에는 **RLS(행 단위 접근 제한)**를 적용해 비로그인 접근과 다른 계정 데이터 접근을 차단합니다. 로그인한 사용자는 본인 표시 이름을 수정하고 본인 즐겨찾기를 조회·추가·삭제할 수 있습니다. 브라우저 연결 설정은 `assets/js/config.js`의 공개 publishable key를 사용하며 관리자 비밀 키·DB 비밀번호는 넣지 않습니다.
 
 메뉴는 당분간 기존 공통 예시 파일을 유지합니다. 나중에 메뉴 테이블을 추가하더라도 메뉴 ID와 화면 API 계약을 보존합니다. 이전 JSON/CSV 5개는 이번 작업에서 사용하지 않습니다.
 
