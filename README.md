@@ -11,11 +11,11 @@
 
 ## 1. 현재 구현과 연결 범위
 
-- 1·2·3페이지의 지도·메뉴·트렌드 데이터는 기존 가상 예시입니다. 별도 전달된 JSON/CSV 5개는 사용하지 않습니다.
+- 지도 페이지의 지도와 주변 매장 위치는 카카오 지도·카카오 로컬 검색 결과(실제 정보)입니다. 1·2·3페이지의 메뉴·트렌드 데이터는 기존 가상 예시입니다. 별도 전달된 JSON/CSV 5개는 사용하지 않습니다.
 - 4페이지는 이메일·비밀번호 로그인, 이메일 인증 후 이름·비밀번호를 입력하는 회원가입, 인증 메일 재요청, 비밀번호 재설정, 로그아웃, 표시 이름 수정, 계정별 즐겨찾기를 Supabase로 연결합니다.
-- 메뉴 목록·매장 위치·가격·영양값·NEW 표시는 실제 정보가 아닙니다. 랜덤 추천은 제외했습니다.
+- 메뉴 목록·가격·영양값·NEW 표시는 실제 정보가 아닙니다. 지도 페이지의 매장 위치는 카카오 지도 기준 실제 정보이며, 카카오 키가 없거나 SDK를 불러오지 못하면 가상 매장이 있는 예시 지도로 대체됩니다. 랜덤 추천은 제외했습니다.
 - 계정은 Supabase Auth, 프로필과 즐겨찾기는 Supabase Postgres에 저장합니다. 초기 설정은 [Supabase 안내](docs/supabase-setup.md)를 따릅니다. 설정·테이블이 준비되지 않으면 실제 저장은 사용할 수 없습니다.
-- URL·publishable key는 `assets/js/config.js`에 둡니다. 브라우저 공개 키이므로 코드에 포함할 수 있지만 **secret/service_role·DB 비밀번호는 넣지 않습니다.** RLS가 사용자별 접근을 제한합니다.
+- URL·publishable key는 `assets/js/config.js`에 둡니다. 브라우저 공개 키이므로 코드에 포함할 수 있지만 **secret/service_role·DB 비밀번호는 넣지 않습니다.** RLS가 사용자별 접근을 제한합니다. 지도용 카카오 JavaScript 키(`kakaoJavaScriptKey`)도 브라우저 공개 키이며 카카오 개발자 콘솔에 등록한 도메인에서만 동작합니다. **카카오 REST API 키는 넣지 않습니다.**
 - Supabase SDK가 브라우저 저장소의 인증 세션을 관리합니다. 비밀번호를 직접 저장하지 않으며 예전 데모 계정·즐겨찾기는 실제 계정으로 옮기지 않습니다.
 - 비교 선택 목록만 기존 브라우저 로컬 저장을 유지합니다. 별도 비교 화면·길 안내는 추가 범위입니다.
 
@@ -35,13 +35,15 @@ python -m http.server 8000
 
 브라우저에서 **http://localhost:8000**을 엽니다. Windows에서 `python`이 없다면 `py -m http.server 8000`을 사용하거나 VS Code Live Server로 `index.html`을 여세요. 종료는 터미널에서 `Ctrl+C`입니다.
 
+지도 페이지는 카카오 개발자 콘솔의 JavaScript SDK 도메인에 `http://localhost:8000`, `http://127.0.0.1:8000`, `https://suslysus.github.io`가 등록되어 있어야 표시됩니다. 다른 포트·주소에서 열면 해당 주소도 등록해야 하며, 미등록이면 예시 지도로 대체됩니다. 브라우저의 현재 위치 허용은 `localhost`와 HTTPS 주소에서만 동작합니다.
+
 HTML을 직접 여는 `file://` 대신 정적 서버를 사용합니다. 로컬 인증 복귀 주소는 `localhost:8000/mypage.html`과 `127.0.0.1:8000/mypage.html`을 허용해 두었습니다. 다른 포트는 Supabase 허용 목록에도 추가해야 합니다. 실제 이메일 인증은 이용 중인 주소에서 메일을 요청하고 같은 브라우저에서 확인하세요.
 
 ## 3. 페이지와 담당 파일
 
 | 페이지 | 담당 | HTML | 개인 CSS / JS | 현재 동작 |
 | --- | --- | --- | --- | --- |
-| 지도·메뉴 | 강민재 | `index.html` | `assets/css/map.css`, `assets/js/map.js` | 예시 지도 핀 선택, 브랜드별 메뉴, 공통 상세창 |
+| 지도·메뉴 | 강민재 | `index.html` | `assets/css/map.css`, `assets/js/map.js` | 카카오 지도, 주변 실제 매장 핀(브랜드별 색), 위치 허용 시 내 위치(거부·차단 시 숭실대), 메뉴창 열기·닫기, 공통 상세창. 카카오 키가 없으면 예시 지도 |
 | 메뉴 검색 | 강다은 | `search.html` | `assets/css/search.css`, `assets/js/search.js` | 이름 검색, 브랜드·카테고리 필터, 즐겨찾기, 비교 선택 목록 |
 | 트렌드·신메뉴 | 현준혁 | `trends.html` | `assets/css/trends.css`, `assets/js/trends.js` | 예시 키워드→검색 연결, 신메뉴 브랜드 필터, 공통 상세창 |
 | 로그인·마이페이지 | 한정원 | `mypage.html` | `assets/css/mypage.css`, `assets/js/mypage.js` | 이메일 로그인·회원가입·재설정, 프로필 편집, 계정별 즐겨찾기, 위치 권한 상태 |
@@ -61,7 +63,7 @@ assets/
     mock-data.js         공통 예시 데이터·브랜드·카테고리 ID
     api.js               메뉴는 예시, 인증·즐겨찾기는 Supabase 연결
     common.js            사이드바·헤더·카드·상세창·알림
-    config.js            공개 Supabase 연결 설정
+    config.js            공개 연결 설정 (Supabase, 카카오 지도 JavaScript 키)
     supabase-auth.js     실제 인증·프로필·즐겨찾기 어댑터
     map.js / search.js / trends.js / mypage.js
   (각 페이지는 자신의 CSS·JS를 사용)
@@ -171,12 +173,12 @@ PR: [실제 PR 링크]
 
 - **파일명·경로를 임의로 바꾸지 마세요.** 변경 시 사이드바 링크, HTML의 CSS/JS 경로, 로그인 복귀 경로까지 함께 수정합니다.
 - HTML의 `body data-page`, `app-sidebar`, `app-topbar`와 스크립트 순서를 유지하세요: `mock-data.js → config.js → Supabase SDK → supabase-auth.js → api.js → common.js → 개인 JS`.
-- 개인 JS는 `CafeAPI`로 데이터를 받습니다. 페이지마다 메뉴 배열이나 서버 URL을 중복 관리하지 않습니다. `CafeMock` 직접 참조는 공통 구현 내부에만 둡니다.
+- 개인 JS는 `CafeAPI`로 데이터를 받습니다. 페이지마다 메뉴 배열이나 서버 URL을 중복 관리하지 않습니다. 단, 지도 페이지의 주변 매장 검색은 현재 `map.js`가 카카오 SDK를 직접 호출하며(`fetchNearbyStores()`), 서버 매장 API가 생기면 `CafeAPI.getStores()` 호출로 교체합니다. `CafeMock` 직접 참조는 공통 구현 내부에만 둡니다.
 - **메뉴·브랜드·카테고리 ID는 공통 계약입니다.** 변경 시 검색 URL·즐겨찾기·비교 선택·API·DB도 맞춥니다. 메뉴 이름으로 식별하지 마세요.
 - 기초본의 `categoryTags`는 복수 태그입니다. 최종 분류는 팀에서 정합니다. 디카페인과 무카페인은 구분하세요.
 - 영양정보는 **제공 사이즈·HOT/ICE·기본 레시피**와 함께 관리합니다. 미확인은 `null`로 두고 ‘확인 중’으로 표시합니다. 0과 미확인은 다릅니다.
 - 외부·사용자 문자열을 `innerHTML`에 그대로 넣지 마세요. 현재 템플릿에서는 `CafeUI.escape()`를 사용합니다. 외부 URL도 허용 프로토콜을 검증합니다.
-- `.env`, 비밀번호, 사용자 세션 토큰, 비밀 API 키, DB 비밀번호·파일, 개인 정보는 커밋하지 않습니다. Supabase publishable key만 공개 설정에 사용합니다. 데모와 실데이터를 구분합니다.
+- `.env`, 비밀번호, 사용자 세션 토큰, 비밀 API 키, DB 비밀번호·파일, 개인 정보는 커밋하지 않습니다. Supabase publishable key와 카카오 JavaScript 키(도메인 제한형 공개 키)만 공개 설정에 사용합니다. 데모와 실데이터를 구분합니다.
 - 사용자 권한은 Supabase Auth의 JWT와 DB의 RLS로 검사합니다. 브라우저 저장소 값이나 표시 이름으로 접근 권한을 판단하지 마세요.
 - 크롤러는 별도 작업으로 두고 방문자 페이지 로딩 때마다 사이트를 긁지 않습니다. 사이트별 접근·이용 조건을 확인하고 과도한 요청을 피합니다.
 - 수집 실패를 메뉴 판매 종료로 처리하지 않습니다. 원본 상품 ID·출처·확인 시각을 보존하고 최초 발견일을 출시일로 쓰지 않습니다.
@@ -193,7 +195,7 @@ PR: [실제 PR 링크]
 | 표시 이름 수정 | `updateProfile(displayName)` | `public.profiles` |
 | 즐겨찾기 조회·추가·삭제 | `getFavorites()` / `toggleFavorite(menuId)` | `public.favorites` + RLS |
 | 인증 메일 / 비밀번호 재설정 | `resendConfirmation(email)` / `sendPasswordReset(email)` / `updatePassword(password)` | Supabase Auth |
-| 메뉴·지도·트렌드 | 기존 `getMenus/getMenu/getStores/getTrends` | 기존 공통 예시 데이터 |
+| 메뉴·지도·트렌드 | 기존 `getMenus/getMenu/getStores/getTrends` | 기존 공통 예시 데이터 (지도 페이지의 주변 매장은 `map.js`의 카카오 로컬 검색) |
 
 자세한 계약은 [API 문서](docs/api.md), 연결 설정은 [Supabase 안내](docs/supabase-setup.md)를 참고합니다. `isFavorite()`는 동기 캐시 조회 계약을 유지하고 Auth 준비·변경 이벤트로 화면을 갱신합니다. 이를 임의로 Promise로 바꾸지 마세요.
 
@@ -216,7 +218,8 @@ PR: [실제 PR 링크]
 ## 8. PR 전 확인할 동작
 
 - 사이드바에서 네 페이지 이동과 현재 페이지 표시.
-- 지도 핀 선택→오른쪽 카페·메뉴 변경, 상세창 열기·닫기.
+- 지도 핀 선택→오른쪽 카페·메뉴 변경, 상세창 열기·닫기, 메뉴창 × 닫기와 선택 표시 해제.
+- 지도 위치: 허용 시 내 위치 중앙, 거부·차단 시 숭실대 복귀, 카카오 키 없음·SDK 실패 시 예시 지도 대체.
 - 검색·필터·결과 없음·초기화, 비교 선택·해제와 페이지 이동 후 목록 유지.
 - 신메뉴 필터와 트렌드→검색 이동. 랜덤 추천 제외 여부.
 - 비로그인 즐겨찾기→로그인→원래 페이지 복귀, 계정별 저장→마이페이지 조회·삭제·새로고침 유지.
