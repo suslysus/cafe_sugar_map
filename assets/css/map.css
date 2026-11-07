@@ -353,3 +353,65 @@
     font-size:11px
   }
 }
+
+/* ===== 카카오 지도 연결 (SDK 로드 성공 시 .map-canvas 에 is-live 클래스가 붙음) ===== */
+.kakao-map {
+  position:absolute;
+  inset:0
+}
+
+.map-canvas.is-live > :not(.kakao-map) {
+  display:none
+}
+
+/* CustomOverlay 안에서는 left/top 퍼센트 배치가 아니라 카카오가 위치를 잡으므로 기본 배치를 해제 */
+.kakao-pin {
+  position:relative;
+  transform:none;
+  cursor:pointer
+}
+
+.kakao-origin {
+  position:relative;
+  top:auto;
+  left:auto
+}
+
+#locate-button:disabled {
+  opacity:.5;
+  cursor:progress
+}
+
+/* 지도 내부 z-index 가 사이드바·상세창 위로 올라오지 않도록 격리 */
+.map-canvas {
+  isolation:isolate
+}
+
+/* ===== 메뉴창 닫기(X) ===== */
+.store-panel {
+  position:relative
+}
+
+.store-close {
+  position:absolute;
+  top:14px;
+  right:14px;
+  z-index:2
+}
+
+.store-header {
+  padding-right:42px
+}
+
+.map-workspace.panel-closed {
+  grid-template-columns:1fr
+}
+
+.map-workspace.panel-closed .store-panel {
+  display:none
+}
+
+.map-workspace.panel-closed .map-panel {
+  border-right:0;
+  border-bottom:0
+}

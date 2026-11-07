@@ -1,6 +1,6 @@
 # 현재 API 계약
 
-2026-11-03. 메뉴·지도·트렌드는 기존 예시 데이터이며, 인증·프로필·즐겨찾기는 Supabase SDK로 연결한다. 각 페이지는 CafeAPI 공개 함수를 호출한다. 별도 /api/v1 서버는 현재 없다.
+2026-11-03. 메뉴·트렌드는 기존 예시 데이터이며, 인증·프로필·즐겨찾기는 Supabase SDK로 연결한다. 2026-11-07부터 지도 페이지의 지도와 주변 매장 위치는 카카오 지도·카카오 로컬 검색을 사용한다([지도 페이지](#지도-페이지의-주변-매장-카카오) 참고). 각 페이지는 CafeAPI 공개 함수를 호출한다. 별도 /api/v1 서버는 현재 없다.
 
 ## 인증·프로필·저장
 
@@ -45,11 +45,29 @@ AUTH_REQUIRED는 로그인 안내로 이동한다. CONFIG_REQUIRED/CONFIG_INVALI
 
 ## 기존 메뉴·로컬 기능 계약
 
-getBrands(), getCategories(), getStores(), getMenus({ brandId, category, q, isNew }), getMenu(menuId), getTrends()는 예시 데이터에 대한 Promise를 반환한다. getCompare()/toggleCompare()/clearCompare()는 기존 로컬 비교 선택을 유지한다.
+getBrands(), getCategories(), getStores(), getMenus({ brandId, category, q, isNew }), getMenu(menuId), getTrends()는 예시 데이터에 대한 Promise를 반환한다. getStores()의 x/y는 예시 지도 대체 화면용 가상 배치 좌표(%)이며 실제 위·경도가 아니다. getCompare()/toggleCompare()/clearCompare()는 기존 로컬 비교 선택을 유지한다.
 
 메뉴 DTO는 { id, brandId, name, categoryTags, sizeLabel, volumeMl, temperature, priceKrw, sugarG, caloriesKcal, tone, isNew, seasonal, sourceUrl, checkedAt, isDemo }다. 단위는 원/g/kcal이고 미확인은 null이다. 현재 모든 메뉴는 isDemo:true다. 공유받은 JSON/CSV 5개는 사용하지 않는다.
 
 실제 메뉴 수집·저장소로 바꾸더라도 메뉴 ID와 DTO를 유지한다. 저장소에 남았지만 현재 카탈로그에서 찾을 수 없는 메뉴는 getFavorites() 결과에서 제외된다. 실제 메뉴를 도입할 때 해당 항목의 표시·삭제·ID 이관 규칙을 추가해야 한다.
+
+## 지도 페이지의 주변 매장 (카카오)
+
+지도 페이지(`index.html`)는 예외적으로 `CafeAPI.getStores()` 대신 `map.js`가 카카오 SDK를 직접 호출해 실제 매장을 찾는다. 서버 매장 API가 생기면 아래 `fetchNearbyStores()`만 교체한다. 메뉴는 이전과 같이 `CafeAPI.getMenus({ brandId })`를 사용한다.
+
+| 항목 | 내용 |
+| --- | --- |
+| 설정 | `assets/js/config.js`의 `CafeConfig.kakaoJavaScriptKey`. 브라우저 공개용 JavaScript 키이며 카카오 개발자 콘솔에 등록한 도메인에서만 동작한다. **REST API 키는 사용하지 않으며 넣지 않는다.** |
+| SDK | `map.js`가 실행 시 `dapi.kakao.com`에서 지도·services 라이브러리를 불러온다(저장소에 포함하지 않음). 브라우저 외부 요청이 발생한다. |
+| 검색 | `getBrands()`의 브랜드 이름으로 카카오 키워드 검색(검색 범위 500m, 거리순). 카페 카테고리(CE7)이고 상호명에 브랜드명이 포함된 결과만 사용한다. |
+| 반환 모양 | `{ id, brandId, name, latitude, longitude, address, distanceM }` — `id/brandId/name/latitude/longitude`는 위 서버 제안(`GET /stores`)의 매장 DTO와 같고, `address/distanceM`은 선택 필드다. |
+| 매장 ID | `kakao-` + 카카오 장소 ID. 화면 선택용이며 즐겨찾기·DB 저장에 사용하지 않는다. |
+| 위치 | 허용하면 내 위치, 거부·차단·실패하면 숭실대 정문(37.4963, 126.9568) 기준. 내 위치를 보던 중 재조회가 실패해도(권한 거부·위치 확인 불가·시간 초과) 숭실대 기준으로 돌아온다. 좌표는 저장하지 않고 카카오 검색 요청에만 사용한다. |
+| 위치 조회 방식 | `getCurrentPosition` 1회 조회이며 이동 중 자동 추적(`watchPosition`)은 하지 않는다. 먼저 네트워크 기반(`enableHighAccuracy: false`, 15초)으로 조회하고, 위치 확인 불가·시간 초과일 때만 GPS 고정밀(20초, 캐시 없음)로 한 번 더 시도한다. 권한 거부는 재시도하지 않는다. |
+| 위치 캐시 | `maximumAge`: 페이지 진입 시 자동 요청은 60000(1분 이내 캐시 허용), 내 위치(⌖) 버튼 클릭과 권한 재허용 후 재조회는 0(항상 새로 측정). |
+| 대체 동작 | 키가 없거나 SDK를 불러오지 못하면 `getStores()`의 가상 매장이 있는 기존 예시 지도로 대체하고 실제 정보가 아님을 안내한다. |
+
+브랜드 이름이 바뀌거나 브랜드가 추가되면 `map.js`의 `SEARCH_RULES`(검색어·상호 판별어)와 `PIN_STYLE`(마커 색)을 함께 확인한다. 규칙에 없는 브랜드는 브랜드 이름으로 검색하고 `mock-data.js`의 브랜드 색을 사용한다. 카카오 검색 결과의 문자열은 `CafeUI.escape()` 또는 `textContent`로만 화면에 넣고, 결과를 DB·파일에 저장하지 않는다. 저장·재사용 범위는 카카오 이용 조건을 확인한 뒤에 정한다.
 
 ## 후속 서버 설계
 
