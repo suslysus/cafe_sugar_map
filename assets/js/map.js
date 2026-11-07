@@ -314,20 +314,28 @@
     return "";
   }
 
+  let locating = false;                                  // 위치 조회 중 여부 (중복 요청 방지)
+
   function locate(auto) {
     if (!live) { ui.toast("실제 지도 연결 전에는 기본 위치(숭실대)로 표시됩니다."); return; }
     if (!window.isSecureContext) { ui.toast("현재 위치는 localhost 또는 HTTPS 주소에서만 사용할 수 있어요. 숭실대 기준으로 보여드려요."); return; }
     if (!navigator.geolocation) { ui.toast("이 브라우저는 위치 기능을 지원하지 않아요. 숭실대 기준으로 보여드려요."); return; }
+    if (locating) return;                                // 이미 조회 중이면 새 요청을 만들지 않음 (진행 중인 요청 결과를 그대로 사용)
     const button = $("locate-button");
+    locating = true;
     button.disabled = true;
     getPosition(!auto).then(
       position => {
+        locating = false;
         button.disabled = false;
+        if (!live) return;                               // 그 사이 예시 지도로 대체됐다면 무시
         moveTo({ lat: position.coords.latitude, lng: position.coords.longitude, mode: "gps" });   // 내 위치를 중심으로 이동 + 주변 재검색
         if (!auto) ui.toast("현재 위치로 이동했어요.");
       },
       error => {
+        locating = false;
         button.disabled = false;
+        if (!live) return;
         const reason = { 1: "위치 권한이 허용되지 않아", 2: "현재 위치를 확인할 수 없어", 3: "위치 조회 시간이 초과되어" }[error.code] || "위치를 가져오지 못해";
         const wasGps = center.mode === "gps";
         if (wasGps) moveTo(defaultCenter());                                      // 내 위치를 보던 중 어떤 이유로든 실패하면 안내 문구대로 숭실대로 복귀 (오류 1·2·3 공통)
