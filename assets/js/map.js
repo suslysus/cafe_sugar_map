@@ -290,14 +290,37 @@
   /* ------------------------------------------------------------------
      6. 현재 위치: 허용 → 내 위치 / 거부·실패 → 숭실대 기준 유지
   ------------------------------------------------------------------ */
-  // auto=true: 페이지에 들어오자마자 자동 요청. 허용하면 안내 없이 내 위치로 이동, 거부/실패하면 안내 후 숭실대 기준 유지
+  // auto=true: 페이지에 들어오자마자 자동 요청. 허용하면 안내 없이 내 위치로 이동, 거부/실패하면 안내 후 숭실대 기준으로 표시
+  // 내 위치(gps)를 보던 중 재조회가 실패하면(권한 거부 1 · 위치 확인 불가 2 · 시간 초과 3 · 기타) 오류 종류와 관계없이 숭실대로 복귀
+  // 모바일 대응: 카톡·인스타 등 앱 내장 브라우저는 위치 권한 창이 막히는 경우가 많아 안내한다
+  const IN_APP_BROWSER = /KAKAOTALK|NAVER\(inapp|Instagram|FBAN|FBAV|Line\/|DaumApps/i.test(navigator.userAgent);
+
+  // 1차: 네트워크·Wi-Fi 기반(빠르고 실내에서도 잘 됨), 2차: 1차가 위치 확인 불가·시간 초과일 때만 GPS(고정밀)로 재시도
+  // (이전에는 처음부터 GPS 고정밀 + 10초 제한이라 모바일 실내에서 시간 초과가 잦았음)
+  function getPosition(fresh) {   // fresh=true: 캐시 없이 새로 측정(사용자가 ⌖를 직접 누른 경우), false: 1분 이내 캐시 허용(자동 요청)
+    const ask = options => new Promise((resolve, reject) => navigator.geolocation.getCurrentPosition(resolve, reject, options));
+    return ask({ enableHighAccuracy: false, timeout: 15000, maximumAge: fresh ? 0 : 60000 }).catch(error => {
+      if (error && error.code === 1) throw error;        // 권한 거부는 재시도해도 같으므로 바로 실패 처리
+      return ask({ enableHighAccuracy: true, timeout: 20000, maximumAge: 0 });
+    });
+  }
+
+  // 안내 문구는 PC·모바일을 구분하지 않고 공통 표현을 쓴다(앱 내장 브라우저만 별도 안내)
+  function locationHelp(code) {
+    if (code === 1) return IN_APP_BROWSER
+      ? " 앱 안의 브라우저에서는 위치 권한이 막힐 수 있어요. 우측 메뉴에서 'Chrome/Safari로 열기'를 이용해 주세요."
+      : " 브라우저의 사이트 설정에서 위치 권한을 '허용'으로 바꿔 주세요.";
+    if (code === 2 || code === 3) return " 기기의 위치 서비스가 켜져 있는지, 네트워크에 연결되어 있는지 확인해 주세요.";
+    return "";
+  }
+
   function locate(auto) {
     if (!live) { ui.toast("실제 지도 연결 전에는 기본 위치(숭실대)로 표시됩니다."); return; }
     if (!window.isSecureContext) { ui.toast("현재 위치는 localhost 또는 HTTPS 주소에서만 사용할 수 있어요. 숭실대 기준으로 보여드려요."); return; }
     if (!navigator.geolocation) { ui.toast("이 브라우저는 위치 기능을 지원하지 않아요. 숭실대 기준으로 보여드려요."); return; }
     const button = $("locate-button");
     button.disabled = true;
-    navigator.geolocation.getCurrentPosition(
+    getPosition(!auto).then(
       position => {
         button.disabled = false;
         moveTo({ lat: position.coords.latitude, lng: position.coords.longitude, mode: "gps" });   // 내 위치를 중심으로 이동 + 주변 재검색
@@ -306,10 +329,10 @@
       error => {
         button.disabled = false;
         const reason = { 1: "위치 권한이 허용되지 않아", 2: "현재 위치를 확인할 수 없어", 3: "위치 조회 시간이 초과되어" }[error.code] || "위치를 가져오지 못해";
-        ui.toast(reason + " 숭실대 기준으로 보여드려요." + (error.code === 1 ? " (주소창의 위치 권한을 허용하면 내 위치를 볼 수 있어요)" : ""));
-        if (error.code === 1 && center.mode === "gps") moveTo(defaultCenter());   // 내 위치를 보던 중 차단됐다면 숭실대로 복귀
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 }
+        const wasGps = center.mode === "gps";
+        if (wasGps) moveTo(defaultCenter());                                      // 내 위치를 보던 중 어떤 이유로든 실패하면 안내 문구대로 숭실대로 복귀 (오류 1·2·3 공통)
+        ui.toast(reason + (wasGps ? " 숭실대 기준으로 돌아왔어요." : " 숭실대 기준으로 보여드려요.") + locationHelp(error.code));
+      }
     );
   }
 
