@@ -1,0 +1,36 @@
+{
+  "p_payload": {
+    "schema_version": 1,
+    "run_id": "11111111-1111-4111-8111-111111111111",
+    "brand_id": "paik",
+    "attempted_at": "2026-11-09T04:00:00Z",
+    "list_status": "ok",
+    "seen": [
+      {
+        "source_key": "news:example-1",
+        "observed_at": "2026-11-09T04:00:01Z"
+      }
+    ],
+    "posts": [
+      {
+        "source_key": "news:example-1",
+        "source_url": "https://paikdabang.com/post_news/example-only/",
+        "title": "(형식 예시) 겨울 라떼 출시",
+        "body_text": "실제 수집 결과가 아닌 형식 설명용 본문입니다.",
+        "image_urls": [],
+        "thumbnail_url": null,
+        "posted_on": "2026-11-09",
+        "release_on": null,
+        "is_seasonal": null,
+        "is_limited": null,
+        "notice_period_text": null,
+        "auto_decision": "needs_review",
+        "evidence": {},
+        "content_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "observed_at": "2026-11-09T04:00:02Z"
+      }
+    ],
+    "failed_details": [],
+    "error_code": null
+  }
+}

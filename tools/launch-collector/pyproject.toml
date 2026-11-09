@@ -1,0 +1,30 @@
+[project]
+name = "cafe-launch-collector"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = ["pydantic>=2.12,<3"]
+
+[dependency-groups]
+dev = ["pytest>=9,<10", "ruff>=0.17,<1", "basedpyright>=1.40,<2"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["ALL"]
+# Pydantic reads annotations at runtime; typed exception codes are not prose messages.
+ignore = ["D", "COM812", "ISC001", "T201", "CPY001", "TC003", "EM101"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101", "PLR2004", "S603"]
+
+[tool.basedpyright]
+typeCheckingMode = "all"
+# Exhaustive match/assert_never is kept deliberately as a future variant guard.
+reportUnnecessaryComparison = false
+include = ["collect.py", "launch_collector", "tests"]
