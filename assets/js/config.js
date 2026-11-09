@@ -4,5 +4,6 @@
  */
 window.CafeConfig = Object.freeze({
   supabaseUrl: "https://dmwpzbmcabwfyczjgqkt.supabase.co",
-  supabasePublishableKey: "sb_publishable_tnRR7uttXCuFh0Lzzj5Csg_r_yZc3qw"
+  supabasePublishableKey: "sb_publishable_tnRR7uttXCuFh0Lzzj5Csg_r_yZc3qw",
+  kakaoJavaScriptKey: "77d5514931660f5562c38efcfcfab35b"
 });
