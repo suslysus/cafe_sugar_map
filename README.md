@@ -21,6 +21,10 @@
 
 ## 2. 실행 방법
 
+공유·발표용 주소는 **[Cafe Sugar Map](https://suslysus.github.io/cafe_sugar_map/)**입니다. GitHub Pages는 `main`의 루트 폴더를 배포하며, 팀원 검토 후 PR을 merge하면 잠시 뒤 사이트도 갱신됩니다. 개인 브랜치에 push하는 것만으로 배포 화면이 바뀌지는 않습니다. 설정과 장애 확인은 [배포 안내](docs/deployment.md)를 참고하세요.
+
+2026-11-03 첫 배포는 기존 데모가 있는 `main` 기준입니다. Supabase 연결은 [PR #2](https://github.com/suslysus/cafe_sugar_map/pull/2)가 검토 후 merge되어야 배포 사이트에서도 사용할 수 있습니다. 정기 크롤링용 Actions는 아직 구성하지 않았습니다.
+
 설치나 빌드 없이 저장소 폴더에서 정적 서버를 실행합니다.
 
 ```bash

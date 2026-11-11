@@ -10,7 +10,7 @@
 
 ## 초기 DB 적용
 
-현재 연결한 `dmwpzbmcabwfyczjgqkt` 프로젝트에는 2026-11-03 초기 스키마와 RLS를 SQL Editor로 적용했다. 같은 프로젝트를 사용하는 조원은 초기 SQL을 다시 실행하지 않는다. Site URL `http://localhost:8000`과 아래 두 마이페이지 Redirect URL도 등록했다. Email 로그인·가입 활성화, 이메일 인증 유지 상태를 확인했다.
+현재 연결한 `dmwpzbmcabwfyczjgqkt` 프로젝트에는 2026-11-03 초기 스키마와 RLS를 SQL Editor로 적용했다. 같은 프로젝트를 사용하는 조원은 초기 SQL을 다시 실행하지 않는다. GitHub Pages 배포에 맞춰 Site URL을 배포 마이페이지로 변경했고, 아래 배포·로컬 Redirect URL 세 개를 등록했다. Email 로그인·가입 활성화, 이메일 인증 유지 상태를 확인했다.
 
 신규 프로젝트에서 `supabase/migrations/202611030001_profiles_favorites.sql`을 SQL Editor로 한 번 실행한다. 이미 테이블이 있는 프로젝트에서는 무조건 재실행하지 말고 스키마와 이력을 확인한다. Supabase CLI를 도입하면 이 파일을 마이그레이션으로 관리할 수 있다. SQL Editor의 수동 실행은 CLI 이력을 자동 생성하지 않는다.
 
@@ -18,14 +18,17 @@
 
 ## 인증 설정
 
-대시보드 Authentication에서 Email 로그인과 회원가입을 활성화한다. 이메일 인증은 유지한다. 로컬 개발의 Site URL은 `http://localhost:8000`을 기준으로 하고 허용 Redirect URL에는 아래 주소를 추가한다.
+대시보드 Authentication에서 Email 로그인과 회원가입을 활성화한다. 이메일 인증은 유지한다. Authentication → URL Configuration의 Site URL은 `https://suslysus.github.io/cafe_sugar_map/mypage.html`이다. 기본 복귀 지점을 마이페이지로 두어 가입·비밀번호 복구 후 해당 화면에서 계속 진행한다. 허용 Redirect URL에는 아래 주소를 등록한다.
 
 ```text
+https://suslysus.github.io/cafe_sugar_map/mypage.html
 http://localhost:8000/mypage.html
 http://127.0.0.1:8000/mypage.html
 ```
 
-다른 포트나 배포 주소를 사용할 때는 해당 주소의 정확한 `mypage.html` 경로를 등록한다. 로그인 복귀 파라미터 `returnTo`는 같은 디렉터리의 지도·검색·트렌드 페이지만 허용한다. 외부 주소는 무시한다.
+코드는 가입·메일 재전송·복구를 요청한 페이지 기준으로 `mypage.html` 복귀 주소를 생성한다. 다른 포트나 배포 주소를 사용할 때는 해당 주소의 정확한 `mypage.html` 경로를 등록한다. 공유 프로젝트의 Site URL을 각자 localhost로 바꾸지 않는다. 로그인 복귀 파라미터 `returnTo`는 같은 디렉터리의 지도·검색·트렌드 페이지만 허용한다. 외부 주소는 무시한다.
+
+배포 사이트의 실제 인증은 Supabase 연결 PR #2가 팀원 검토 후 `main`에 merge되고 Pages 배포가 끝난 뒤 확인한다. 이전에 localhost에서 요청한 인증 메일은 이전 복귀 주소가 들어 있을 수 있다. 배포 화면에서 새 메일을 요청해 같은 브라우저에서 열고, 이미 인증된 계정이면 다시 가입하지 말고 로그인한다. 가입 직후 비밀번호 입력이 비워지고 인증 메일 확인 안내가 뜨는 것은 정상 동작이다.
 
 비밀번호는 회원가입 화면에서 8~72자로 입력한다. 실제 최종 정책은 Supabase 설정도 충족해야 한다. PKCE 방식이므로 인증·재설정 메일은 요청한 브라우저에서 연다. 비밀번호 재설정은 SDK의 `PASSWORD_RECOVERY` 이벤트를 받은 로그인 상태에서만 표시하며, URL 파라미터만으로 변경 화면을 열지 않는다. 복구 메일을 열고 새 비밀번호를 설정하는 절차는 본인이 직접 진행한다.
 
