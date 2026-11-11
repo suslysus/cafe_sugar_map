@@ -18,6 +18,7 @@
 - URL·publishable key는 `assets/js/config.js`에 둡니다. 브라우저 공개 키이므로 코드에 포함할 수 있지만 **secret/service_role·DB 비밀번호는 넣지 않습니다.** RLS가 사용자별 접근을 제한합니다. 지도용 카카오 JavaScript 키(`kakaoJavaScriptKey`)도 브라우저 공개 키이며 카카오 개발자 콘솔에 등록한 도메인에서만 동작합니다. **카카오 REST API 키는 넣지 않습니다.**
 - Supabase SDK가 브라우저 저장소의 인증 세션을 관리합니다. 비밀번호를 직접 저장하지 않으며 예전 데모 계정·즐겨찾기는 실제 계정으로 옮기지 않습니다.
 - 비교 선택 목록만 기존 브라우저 로컬 저장을 유지합니다. 별도 비교 화면·길 안내는 추가 범위입니다.
+- 방문 통계는 GA4를 사용하며, 배포 주소에서 방문자가 동의한 경우에만 수집합니다. 로컬 접속과 인증 콜백은 제외하고, 검색어·인증 정보가 있는 URL을 통계로 전송하지 않습니다. 설정과 실제 수신 확인은 [방문 통계 안내](docs/analytics.md)를 참고하세요. 코드가 main에 merge되어 Pages 배포가 끝나기 전에는 운영 사이트에 적용되지 않습니다.
 
 ## 2. 사이트 주소·배포·실행 방법
 
@@ -55,6 +56,7 @@ index.html / search.html / trends.html / mypage.html
 assets/
   css/
     common.css           공통 디자인·사이드바·카드·상세창
+    analytics.css        방문 통계 동의 안내
     map.css              강민재
     search.css           강다은
     trends.css           현준혁
@@ -63,7 +65,8 @@ assets/
     mock-data.js         공통 예시 데이터·브랜드·카테고리 ID
     api.js               메뉴는 예시, 인증·즐겨찾기는 Supabase 연결
     common.js            사이드바·헤더·카드·상세창·알림
-    config.js            공개 연결 설정 (Supabase, 카카오 지도 JavaScript 키)
+    config.js            공개 연결 설정 (Supabase, 카카오 지도 JavaScript 키, GA4 측정 ID)
+    analytics.js         운영 사이트의 선택 동의 기반 GA4 방문 통계
     supabase-auth.js     실제 인증·프로필·즐겨찾기 어댑터
     map.js / search.js / trends.js / mypage.js
   (각 페이지는 자신의 CSS·JS를 사용)
@@ -71,6 +74,7 @@ docs/
   api.md                 현재 SDK 호출·화면 연결 계약
   database.md            Supabase 테이블·RLS 설계
   supabase-setup.md      실제 Supabase 초기화·인증 설정
+  analytics.md           GA4 설정·배포 후 통계 확인 방법
   schema/accounts.sql    이전 SQLite 참고 예시 (Supabase 실행 금지)
   schema/catalog.sql     이전 SQLite 참고 예시 (Supabase 실행 금지)
 supabase/

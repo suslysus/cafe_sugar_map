@@ -1,5 +1,14 @@
 # 외부 라이브러리
 
+## Google Analytics 4 Google 태그 (선택 동의 후 로드)
+
+- 용도: 배포 사이트의 페이지 방문 통계. 일반 GA4 무료 버전을 사용한다.
+- 출처: [Google Analytics 개발자 문서](https://developers.google.com/analytics/devguides/collection/ga4/views)
+- 로드: `assets/js/analytics.js`가 운영 주소에서 통계 수집에 동의한 경우에만 `https://www.googletagmanager.com/gtag/js`를 요청한다. Google 태그는 저장소에 복사하지 않으며 고정 버전이 아니다.
+- Google Analytics 서비스 이용약관과 개인정보처리방침을 따른다. 쿠키 식별자·접속 기기 등은 Google에서 처리되므로 완전한 익명 통계라고 보장하지 않는다. 이메일·비밀번호·인증 코드·검색어·정밀 위치를 이 모듈의 통계 항목으로 보내지 않는다.
+- 측정 ID는 공개 설정이다. 별도 관리자 비밀 키·측정 프로토콜 API 비밀번호는 필요 없다.
+- 거절·로컬 환경·인증 콜백에서는 태그를 로드하지 않는다. Google 장애·차단은 사이트 로그인·검색을 막지 않는다. 운영 설정과 확인 절차는 [방문 통계 안내](analytics.md)를 따른다.
+
 ## Supabase JavaScript SDK
 
 - 패키지: `@supabase/supabase-js` 2.118.0 (고정 버전)

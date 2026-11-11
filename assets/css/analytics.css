@@ -1,0 +1,27 @@
+/* 방문 통계 안내만 사용하는 스타일. 기존 페이지의 공통 규칙은 변경하지 않습니다. */
+.analytics-controls {
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px 16px;
+  align-items:center;
+  margin-top:36px;
+  padding:16px 0;
+  border-top:1px solid var(--line);
+}
+.analytics-notice {
+  margin-top:12px;
+  padding:24px;
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  background:var(--surface);
+  max-width:760px;
+}
+.analytics-notice[hidden] { display:none; }
+.analytics-notice h2 { font-size:18px; margin:0 0 10px; }
+.analytics-notice p { margin:10px 0; }
+.analytics-notice summary { cursor:pointer; font-weight:600; }
+.analytics-actions { display:flex; flex-wrap:wrap; gap:12px; margin-top:20px; }
+@media(max-width:480px) {
+  .analytics-notice { padding:18px; }
+  .analytics-actions .button { flex:1 1 160px; }
+}
