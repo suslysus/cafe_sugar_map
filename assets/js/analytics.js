@@ -43,8 +43,7 @@
     window.dataLayer = window.dataLayer || [];
     const gtag = function () { window.dataLayer.push(arguments); };
     window.gtag = gtag;
-    gtag("js", new Date());
-    gtag("config", measurementId, {
+    const tagConfig = {
       send_page_view: false,
       page_location: origin + basePath + page,
       page_referrer: cleanReferrer(),
@@ -57,8 +56,17 @@
       cookie_expires: 30 * 24 * 60 * 60,
       cookie_update: false,
       cookie_flags: "SameSite=Lax;Secure"
+    };
+    // 태그의 자동 초기화에도 URL 정리·쿠키·자동 조회 차단 설정을 적용합니다.
+    gtag("set", tagConfig);
+    gtag("js", new Date());
+    gtag("config", measurementId, tagConfig);
+    gtag("event", "page_view", {
+      send_to: measurementId,
+      page_location: tagConfig.page_location,
+      page_referrer: tagConfig.page_referrer,
+      page_title: tagConfig.page_title
     });
-    gtag("event", "page_view", { send_to: measurementId });
     const script = document.createElement("script");
     script.async = true;
     script.referrerPolicy = "no-referrer";
