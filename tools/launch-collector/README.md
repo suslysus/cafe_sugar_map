@@ -45,6 +45,23 @@ uv run tools/launch-collector/collect.py validate tools/launch-collector/example
 uv run --project tools/launch-collector --group dev python -m pytest -p no:cacheprovider tools/launch-collector/tests
 ```
 
+### Windows에서 테스트할 때
+
+Windows는 Python 기본 출력 인코딩이 UTF-8이 아니어서, CLI 출력을 UTF-8로 읽는 테스트에서 `UnicodeDecodeError` 경고가 날 수 있습니다. 테스트 전에 같은 터미널에서 `PYTHONUTF8=1`을 설정하고 위 명령을 실행하세요.
+
+```text
+# PowerShell
+$env:PYTHONUTF8 = "1"
+
+# 명령 프롬프트(cmd)
+set PYTHONUTF8=1
+
+# Git Bash
+export PYTHONUTF8=1
+```
+
+설정은 해당 터미널 창에서만 유지됩니다. macOS·Linux는 기본이 UTF-8이라 따로 설정하지 않아도 됩니다.
+
 테스트는 네트워크·실계정·DB를 사용하지 않습니다. 실제 사이트 파서와 실제 DB 동작은 후속 PR에서 각각 확인해야 합니다.
 
 ## 다음 변경 묶음
