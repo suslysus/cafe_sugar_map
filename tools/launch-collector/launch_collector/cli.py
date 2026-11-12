@@ -111,7 +111,11 @@ async def run_collection(args: CommandArgs, limits: CollectionLimits, brand: Bra
                 "failed_count": len(batch.failed_details),
                 "pages_read": result.pages_read,
                 "has_more": result.has_more,
-                "requires_review": len(batch.posts),
+                "accepted_count": sum(post.auto_decision == "accepted" for post in batch.posts),
+                "needs_review_count": sum(
+                    post.auto_decision == "needs_review" for post in batch.posts
+                ),
+                "excluded_count": sum(post.auto_decision == "excluded" for post in batch.posts),
                 "image_download_requested": args.image_dir is not None,
                 "images_downloaded": len(manifest.downloaded),
                 "images_failed": len(manifest.failed),

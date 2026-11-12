@@ -12,6 +12,7 @@ from uuid import uuid4
 from pydantic import Field
 
 from launch_collector.batch import BrandBatch, IngestRequest, ListStatus
+from launch_collector.classify import classify
 from launch_collector.errors import CollectionError
 from launch_collector.models import (
     CollectedPost,
@@ -55,7 +56,8 @@ def content_hash(content: PostContent) -> str:
 
 
 def review_candidate(content: PostContent) -> CollectedPost:
-    """Extraction is not launch approval; leave classification to a later change."""
+    """Attach the rule-based decision; `accepted` is a launch reading, not sales proof."""
+    classification = classify(content.title, content.body_text)
     return CollectedPost(
         source_key=content.source_key,
         source_url=content.source_url,
@@ -69,8 +71,8 @@ def review_candidate(content: PostContent) -> CollectedPost:
         is_limited=content.is_limited,
         notice_period_text=content.notice_period_text,
         observed_at=content.observed_at,
-        auto_decision="needs_review",
-        evidence={"reason": "collection_only_not_classified"},
+        auto_decision=classification.decision,
+        evidence=classification.evidence,
         content_hash=content_hash(content),
     )
 

@@ -9,6 +9,7 @@ import anyio
 from pydantic import HttpUrl
 
 from launch_collector.batch import IngestRequest
+from launch_collector.classify import classify
 from launch_collector.collecting import CollectionLimits, collect_brand, content_hash
 from launch_collector.errors import CollectionError
 from launch_collector.models import PostContent, SourceKey
@@ -73,7 +74,9 @@ def test_collection_when_requested_scope_crosses_page_boundary() -> None:
     assert len(request.p_payload.posts) == 12
     assert len({post.source_key for post in request.p_payload.posts}) == 12
     assert IngestRequest.model_validate_json(request.model_dump_json()) == request
-    assert all(post.auto_decision == "needs_review" for post in request.p_payload.posts)
+    for post in request.p_payload.posts:
+        assert post.auto_decision == classify(post.title, post.body_text).decision
+        assert "rule" in post.evidence
 
 
 def test_collection_when_one_detail_fails_preserves_other_posts() -> None:
