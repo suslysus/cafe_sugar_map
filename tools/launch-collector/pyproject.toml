@@ -2,7 +2,12 @@
 name = "cafe-launch-collector"
 version = "0.1.0"
 requires-python = ">=3.12"
-dependencies = ["pydantic>=2.12,<3"]
+dependencies = [
+    "pydantic>=2.12,<3",
+    "anyio>=4.14,<5",
+    "httpx2[http2,brotli,zstd]>=2.16,<3",
+    "selectolax>=1,<2",
+]
 
 [dependency-groups]
 dev = ["pytest>=9,<10", "ruff>=0.17,<1", "basedpyright>=1.40,<2"]
@@ -22,6 +27,9 @@ ignore = ["D", "COM812", "ISC001", "T201", "CPY001", "TC003", "EM101"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["S101", "PLR2004", "S603"]
+
+[tool.ruff.lint.flake8-type-checking]
+runtime-evaluated-base-classes = ["launch_collector.models.FrozenModel"]
 
 [tool.basedpyright]
 typeCheckingMode = "all"
