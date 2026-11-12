@@ -22,6 +22,15 @@
       <form id="search-form" class="search-form"><label class="sr-only" for="menu-query">메뉴 이름</label><input id="menu-query" type="search" placeholder="어떤 음료를 찾고 있나요?" maxlength="80"><button class="button primary" type="submit">검색</button></form>
       <div class="filter-line"><span class="filter-label">브랜드</span><div id="brand-filters" class="filter-options"></div></div>
       <div class="filter-line"><span class="filter-label">카테고리</span><div id="category-filters" class="filter-options"></div></div>
+      <div class="filter-line">
+        <label class="filter-label" for="menu-sort">정렬</label>
+        <select id="menu-sort" class="filter-chip">
+          <option value="">기본순</option>
+          <option value="sugar-asc">당류 낮은 순</option>
+          <option value="price-asc">가격 낮은 순</option>
+          <option value="price-desc">가격 높은 순</option>
+        </select>
+      </div>
     </section>
     <div class="section-heading"><div><p class="eyebrow">MENU COLLECTION</p><h2>나의 취향을 찾아서 <span id="result-count" class="count"></span></h2></div><button class="text-link" id="reset-filters" type="button">조건 초기화 ↺</button></div>
     <div id="search-results" class="menu-grid" aria-live="polite"></div>
