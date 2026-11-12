@@ -29,8 +29,10 @@ NOISE = re.compile(
     alternation(
         SOURCE_TAG.pattern,
         r"메가\s*MGC\s*커피",
+        r"MGC\s*커피",
         "메가커피",
         r"컴포즈\s*커피",
+        r"(?:스타벅스|빽다방)\s*커피",
         "스타벅스",
         "빽다방",
         r"커피\s*프랜차이즈",
@@ -39,10 +41,11 @@ NOISE = re.compile(
 LAUNCH = re.compile(
     alternation(
         "출시", "신메뉴", "신제품", "선보", "선봬", "출격", "돌아왔", "돌아온", "런칭", "론칭",
-        "새로워진", "새롭게",
+        "새로워진", "새롭게", "첫선", r"(?<![A-Za-z])(?i:NEW)(?![A-Za-z])",
     )
 )  # fmt: skip
-COUNT = re.compile(r"\d+\s*종")
+# One- or two-digit menu counts only, so a year like "2026 종로" is not a count.
+COUNT = re.compile(r"(?<![\d.,])[1-9]\d?\s?종(?![로합목류])")
 BEVERAGE = re.compile(
     alternation(
         "라떼", "아메리카노", "에스프레소", "콜드브루", "커피", "음료", "에이드", "주스",
@@ -50,7 +53,7 @@ BEVERAGE = re.compile(
         "밀크티", "아이스티", "블랙티", "티브리즈", "드링크",
         "녹차", "홍차", "말차", "호지차", "유자차", "생강차", "대추차", "쌍화차",
         "레몬차", "자몽차", "모과차",
-        r"\bTEA\b",
+        r"(?<![A-Za-z])TEA(?![A-Za-z])",
         # A standalone 티 (tea), never the first syllable of 티라미수 or 스티커.
         r"(?<![가-힣])티(?![가-힣])",
     ),
@@ -60,19 +63,21 @@ FOOD = re.compile(
     alternation(
         "케이크", "샌드위치", "와플", "바게트", "티라미수", "빙수", "푸딩", "요거트",
         "베이커리", "디저트", "도넛", "크로플", "토스트", "머핀", "스콘", "파니니",
-        "핫도그", "아이스크림", "브레드", "크레이프", "몽블랑", "쿠키", "떡", "빵",
+        "핫도그", "아이스크림", "브레드", "크레이프", "몽블랑", "쿠키", "젤리", "마카롱",
+        "떡", "빵",
     )
 )  # fmt: skip
 GOODS = re.compile(
     alternation(
-        "굿즈", r"\bMD\b", "텀블러", "키링", "키체인", "머그", "테이블웨어", "드립백",
-        "스탬프", "챌린지", "포토카드",
+        "굿즈", r"(?<![A-Za-z])MD(?![A-Za-z])", "텀블러", "키링", "키체인", "머그",
+        "테이블웨어", "드립백", "스탬프", "챌린지", "포토카드",
     )
 )  # fmt: skip
 PROMOTION = re.compile(
     alternation(
         "할인", "쿠폰", "프로모션", "증정", "무료", "적립", r"1\+1", r"\d+\s*천\s*원",
-        r"\d[\d,]*원",
+        # A price, not 원두/원칙/원조 and the like.
+        r"\d[\d,]*\s*원(?![두조칙액유석])",
     )
 )  # fmt: skip
 NOTICE = re.compile(
@@ -81,6 +86,14 @@ NOTICE = re.compile(
         r"팬\s*사인회", "프리퀀시", "진출", "호점", "채용", "공지", "점검",
     )
 )  # fmt: skip
+# Apps and services are launched too, but they are not drinks.
+SERVICE = re.compile(
+    alternation("앱", "어플", "서비스", "리워드", "구독", "키오스크", "멤버십")
+)  # fmt: skip
+# A drink word right before a food word is a flavor ("말차 케이크", "커피콩빵"), not a drink.
+FLAVOR = re.compile(rf"(?:{BEVERAGE.pattern})\s*[가-힣]{{0,4}}?(?:{FOOD.pattern})", re.IGNORECASE)
+# Words too generic to be a drink name when a title merely ends with them.
+GENERIC_DRINKS = frozenset({"커피", "음료", "드링크", "티", "tea"})
 # Articles break lines in the middle of sentences, so only punctuation ends a sentence.
 SENTENCE_END = re.compile(r"(?<=[.!?])\s+")
 # Trailing spaces, punctuation and quotes (including curly quotes) after a drink name.
@@ -95,6 +108,7 @@ TITLE_SIGNALS: dict[str, re.Pattern[str]] = {
     "goods": GOODS,
     "promotion": PROMOTION,
     "notice": NOTICE,
+    "service": SERVICE,
 }
 
 
@@ -141,15 +155,20 @@ def launch_sentence(body: str) -> str | None:
     return None
 
 
-def ends_with_beverage(title: str) -> bool:
+def ends_with_drink_name(title: str) -> bool:
     stripped = TRAILING.sub("", title)
-    return any(match.end() == len(stripped) for match in BEVERAGE.finditer(stripped))
+    return any(
+        match.end() == len(stripped) and match.group(0).lower() not in GENERIC_DRINKS
+        for match in BEVERAGE.finditer(stripped)
+    )
 
 
 # Checked in order; the first matching rule decides.
 RULES: tuple[tuple[Callable[[Signals], bool], Decision, str], ...] = (
     (lambda s: s.has("goods") and not s.drink_launch, "excluded", "title_goods"),
-    (lambda s: s.has("notice") and not s.drink_launch, "excluded", "title_notice"),
+    (lambda s: s.has("notice") and not s.has("launch"), "excluded", "title_notice"),
+    (lambda s: s.has("service") and s.has("launch"), "needs_review", "launch_with_service"),
+    (lambda s: s.has("service"), "excluded", "title_service"),
     (lambda s: s.has("promotion") and s.has("launch"), "needs_review", "launch_with_promotion"),
     (lambda s: s.has("promotion"), "excluded", "title_promotion"),
     (lambda s: s.drink_launch, "accepted", "title_launch_and_beverage"),
@@ -161,16 +180,21 @@ RULES: tuple[tuple[Callable[[Signals], bool], Decision, str], ...] = (
     ),
     (lambda s: s.has("launch"), "needs_review", "launch_without_beverage"),
     (lambda s: s.drink_title and s.has("count"), "accepted", "title_beverage_count"),
-    (lambda s: s.drink_title and s.name_title, "accepted", "title_beverage_name"),
+    (lambda s: s.name_title, "accepted", "title_beverage_name"),
     (lambda s: s.body_sentence is not None, "needs_review", "body_launch_only"),
 )
 
 
 def classify(title: str, body_text: str) -> Classification:
     title_text = NOISE.sub(" ", title)
+    flavors = words(FLAVOR, title_text)
+    drink_text = FLAVOR.sub(" ", title_text)
+    found = {key: words(pattern, title_text) for key, pattern in TITLE_SIGNALS.items()}
+    found["beverage"] = words(BEVERAGE, drink_text)
+    found["flavor"] = flavors
     signals = Signals(
-        found={key: words(pattern, title_text) for key, pattern in TITLE_SIGNALS.items()},
-        name_title=ends_with_beverage(title_text),
+        found=found,
+        name_title=ends_with_drink_name(drink_text),
         body_sentence=launch_sentence(body_text),
     )
     decision: Decision = "excluded"
