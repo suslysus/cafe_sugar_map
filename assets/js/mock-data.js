@@ -6,11 +6,14 @@ window.CafeMock = {
     { id: "paik", name: "빽다방", initial: "P", color: "#9a5550" },
     { id: "mega", name: "메가커피", initial: "M", color: "#a48028" }
   ],
-  categories: [
-    { id: "caffeine", name: "카페인" }, { id: "decaf", name: "디카페인" },
-    { id: "yogurt", name: "요거트" }, { id: "icecream", name: "아이스크림&빙수" },
-    { id: "latte", name: "라떼" }, { id: "smoothie", name: "프라페&스무디" },
-    { id: "fruit", name: "과일" }
+    categories: [
+    { id: "coffee", name: "커피·콜드브루" },
+    { id: "decaf", name: "디카페인" },
+    { id: "noncoffee-latte", name: "논커피 라떼" },
+    { id: "blended", name: "블렌디드" },
+    { id: "ade-juice", name: "에이드·주스" },
+    { id: "tea", name: "티" },
+    { id: "other", name: "기타 음료" }
   ],
   stores: [
     { id: "demo-store-s", brandId: "starbucks", name: "스타벅스 예시 매장", description: "숭실대 주변 · 가상 매장 A", x: 40, y: 32 },
@@ -19,8 +22,8 @@ window.CafeMock = {
     { id: "demo-store-m", brandId: "mega", name: "메가커피 예시 매장", description: "숭실대 주변 · 가상 매장 D", x: 62, y: 76 }
   ],
   menus: [
-    { id: "demo-s-latte", brandId: "starbucks", name: "예시 아이스 라떼", categoryTags: ["caffeine", "latte"], sizeLabel: "최소 사이즈(예시)", volumeMl: 350, temperature: "ICE", priceKrw: 5000, sugarG: 8, caloriesKcal: 120, tone: "latte", isNew: false, seasonal: false },
-    { id: "demo-s-matcha", brandId: "starbucks", name: "예시 말차 크림 라떼", categoryTags: ["caffeine", "latte"], sizeLabel: "최소 사이즈(예시)", volumeMl: 350, temperature: "ICE", priceKrw: 6000, sugarG: 25, caloriesKcal: 240, tone: "matcha", isNew: true, seasonal: true },
+    { id: "demo-s-latte", brandId: "starbucks", name: "예시 아이스 라떼", categoryTags: ["coffee"], sizeLabel: "최소 사이즈(예시)", volumeMl: 350, temperature: "ICE", priceKrw: 5000, sugarG: 8, caloriesKcal: 120, tone: "latte", isNew: false, seasonal: false },
+    { id: "demo-s-matcha", brandId: "starbucks", name: "예시 말차 크림 라떼", categoryTags: ["noncoffee-latte"], sizeLabel: "최소 사이즈(예시)", volumeMl: 350, temperature: "ICE", priceKrw: 6000, sugarG: 25, caloriesKcal: 240, tone: "matcha", isNew: true, seasonal: true },
     { id: "demo-s-decaf", brandId: "starbucks", name: "예시 디카페인 커피", categoryTags: ["decaf"], sizeLabel: "최소 사이즈(예시)", volumeMl: 350, temperature: "HOT", priceKrw: 4800, sugarG: 0, caloriesKcal: 10, tone: "coffee", isNew: false, seasonal: false },
     { id: "demo-c-latte", brandId: "compose", name: "예시 바닐라 라떼", categoryTags: ["caffeine", "latte"], sizeLabel: "최소 사이즈(예시)", volumeMl: 450, temperature: "ICE", priceKrw: 3800, sugarG: 22, caloriesKcal: 210, tone: "latte", isNew: false, seasonal: false },
     { id: "demo-c-yogurt", brandId: "compose", name: "예시 딸기 요거트", categoryTags: ["yogurt", "smoothie", "fruit"], sizeLabel: "최소 사이즈(예시)", volumeMl: 450, temperature: "ICE", priceKrw: 4500, sugarG: 36, caloriesKcal: 290, tone: "berry", isNew: true, seasonal: true },
